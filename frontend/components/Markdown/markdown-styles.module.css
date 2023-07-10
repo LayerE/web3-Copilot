@@ -1,0 +1,90 @@
+.reactMarkDown {
+  --table-bg: #161616;
+  --table-border-color: #595959;
+  --th-bg: #282828;
+  --link-color: #fff;
+  --data-color: #fff;
+  font-family: var(--ff-imp-reg) !important;
+  font-size: 1rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+.reactMarkDown ol,
+.reactMarkDown ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 1rem;
+}
+/*TABLE STYLES*/
+.reactMarkDown table {
+  border-spacing: 0;
+  border-style: none;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+  display: block;
+  max-width: -moz-fit-content;
+  max-width: fit-content;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding:.5rem;
+}
+.reactMarkDown table thead {
+  border-bottom: 1px solid var(--table-border-color);
+  background: var(--th-bg);
+}
+.reactMarkDown table th {
+  min-width: 100px;
+  text-align: left;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--table-border-color);
+}
+
+.reactMarkDown table td {
+  min-width: 100px;
+  text-align: left;
+  color: var(--data-color);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--table-border-color);
+}
+.reactMarkDown img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  width: 25rem;
+}
+
+.reactMarkDown table td img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  width: 5rem;
+}
+/*CODE BLOCK STYLES*/
+.reactMarkDown pre {
+  border: 1px solid;
+  border-radius: 0.25rem;
+  border-color: #2e2e2e;
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: pre-wrap !important;
+  color: rgba(85, 255, 161, 0.55);
+  font-size: 0.9rem !important;
+  font-family: var(--ff-content) !important;
+  padding: 0.25rem;
+}
+.reactMarkDown code {
+  margin: 0.5rem 0;
+  white-space: pre-wrap !important;
+}
+
+/*LINKS*/
+.reactMarkDown a {
+  font-size: 0.9rem;
+  padding: 0 0.25rem;
+}

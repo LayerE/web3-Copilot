@@ -1,0 +1,746 @@
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { nanoid } from "nanoid";
+import { useAppState } from "@/context/app.context";
+import { models } from "@/components/GPTModelDropDown";
+import { Session } from "inspector";
+export enum SubmitKey {
+  Enter = "Enter",
+  CtrlEnter = "Ctrl + Enter",
+  ShiftEnter = "Shift + Enter",
+  AltEnter = "Alt + Enter",
+  MetaEnter = "Meta + Enter",
+}
+
+
+export const BE_URL = "http://localhost:5000"
+
+
+export interface Prompt {
+  id?: number | string;
+  mssgId?: number | string;
+  title: string;
+  content?: string;
+  streaming?: boolean;
+  mintBody?: any;
+  sources?: any;
+  isAllCreditsUsed?: boolean;
+  feedback?: any;
+  suggestions?: any;
+  abortPrompt?: boolean;
+  fullContentLoaded?: boolean;
+  noCitationsFound?: boolean;
+  noSuggestionsFound?: boolean;
+  type?: "stats" | "learn" | "mint" | "faucet";
+  isContractReady?: boolean;
+  sourceCode?: any;
+  txData?: any;
+  regeneratedResponses?: string[];
+  isMintReady?: boolean;
+  loader_queries?: [];
+  loader_links?: [];
+}
+const DEFAULT_TOPIC = "New conversation";
+export type PERSONA_TYPES = "new_dev" | "dev" | "validator";
+export interface ChatSession {
+  id: number;
+  conversation_id?: number | string;
+  topic: string;
+  prompts: Prompt[];
+  mintHistoryResponse?: any[];
+  lastUpdate: string;
+  type: PERSONA_TYPES;
+  latestPromptContent?: string;
+  isContractDeployment?: boolean;
+  isMintReady?: boolean;
+  isFvrt?: boolean;
+  continuedSessionID?: any;
+}
+function createEmptySession(idx?: number): ChatSession {
+  const createDate = new Date().toLocaleString();
+  return {
+    id: Date.now(),
+    topic: idx ? `${DEFAULT_TOPIC} - ${idx}` : DEFAULT_TOPIC,
+    prompts: [],
+    lastUpdate: createDate,
+    mintHistoryResponse: [],
+    type: "new_dev",
+    isContractDeployment: false,
+    isMintReady: false,
+  };
+}
+
+interface ChatStore {
+  gptModel: any;
+  hasSiteAccess: boolean;
+  api_key: string;
+  sessions: ChatSession[];
+  credits: number;
+  creditStatus: boolean;
+  user: any;
+  currentSessionIndex: number;
+  isLoggedIn: boolean;
+  jwt: string;
+  showSources: boolean;
+  continueSession: (conversationID: string) => void;
+  likeSession: (sessionID: any, liked: boolean) => void;
+  setGPTModel: (model: any) => void;
+  updateSessionType: (type: PERSONA_TYPES) => void;
+  likePrompt: (prompt: Prompt, liked: boolean) => void;
+  clearSessions: () => void;
+  updateUserInfo: () => void;
+  updateJWT: (jwt: string) => void;
+  updateLoginStatus: (status: boolean) => void;
+  removeSession: (index: number) => void;
+  selectSession: (index: number) => void;
+  onNewPrompt: (prompt: Prompt) => void;
+  onRegeneratePrompt: (promptID: string) => void;
+  updateCurrentSession: (updater: (session: ChatSession) => void) => void;
+  newSession: () => void;
+  updateAPIKey: (key: string) => void;
+  updateCreditCount: (count?: number) => void;
+  updateCreditStatus: (status: boolean) => void;
+  addMintHistory: (mintRes: any) => void;
+  removeMintHistory: (index: boolean) => void;
+  currentSession: () => ChatSession;
+  mintPrompt: (prompt: Prompt) => void;
+  updateHideSourceStatus: (status: boolean) => void;
+  responsePrompt: (prompt: Prompt, url: string, sessionID: number) => void;
+  abortPrompt: (prompt: Prompt) => void;
+  updateSiteAccessStatus: (giveAccess: boolean) => void;
+  updateSessionData: (
+    sessionID: number,
+    updater: (session: ChatSession) => void
+  ) => void;
+}
+const reduceCredits = (message: string) => {
+  let credits = message?.length;
+  if (credits < 200) {
+    return 1;
+  } else if (credits < 500) {
+    return 2;
+  } else if (credits < 1000) {
+    return 3;
+  } else {
+    return 4;
+  }
+};
+
+export const APP_KEY = "chat-store";
+
+export const useChatStore = create<ChatStore>()(
+  //@ts-ignore
+  persist(
+    //@ts-nocheck
+    // @ts-ignore
+    (set, get) => ({
+      gptModel: models[1],
+      sessions: [createEmptySession()],
+      currentSessionIndex: 0,
+      api_key: "",
+      credits: 1,
+      hasSiteAccess: false,
+      creditStatus: true,
+      jwt: "",
+      user: {},
+      isLoggedIn: false,
+      showSources: true,
+      setGPTModel: (model: any) => {
+        set({
+          gptModel: model,
+        });
+      },
+      updateAPIKey: (key: string) => {
+        set({
+          api_key: key,
+        });
+      },
+      updateSiteAccessStatus: (giveAccess: boolean) => {
+        set((state) => {
+          return {
+            hasSiteAccess: giveAccess,
+          };
+        });
+      },
+      updateHideSourceStatus(status: boolean) {
+        set((state) => {
+          return {
+            showSources: status,
+          };
+        });
+      },
+      async continueSession(conversationID: string) {
+        try {
+          const res = await axios.post(BE_URL + "/conversation/id", {
+            conversationId: conversationID,
+          });
+          const combinedRes = res?.data?.conversation?.chats?.questions?.map(
+            (item: any, index: number) => ({
+              title: item,
+              content: res?.data?.conversation?.chats?.answers[index],
+              id: nanoid(),
+              type: "learn",
+              regeneratedResponses: [],
+            })
+          );
+          const createDate = new Date().toLocaleString();
+          const new_session = {
+            id: Date.now(),
+            continuedSessionID: conversationID,
+            topic: `${combinedRes[0]?.title}`,
+            prompts: combinedRes,
+            lastUpdate: createDate,
+            type: "new_dev",
+            isContractDeployment: false,
+            isMintReady: false,
+          };
+
+          set((state) => ({
+            currentSessionIndex: 0,
+            sessions: [new_session as ChatSession].concat(state.sessions),
+            mintHistoryResponse: [],
+          }));
+        } catch (err) {
+          console.log("err fetch convo", err);
+        }
+      },
+      async updateUserInfo() {
+        if (get().jwt !== "" && get().isLoggedIn) {
+          try {
+            const res = await axios.get(BE_URL + "/user/status", {
+              headers: {
+                authorization: get().jwt ?? null,
+              },
+            });
+            set({
+              user: { ...res.data },
+              credits: res.data.tokens ?? 0,
+            });
+          } catch (error) {
+            return error;
+          }
+        }
+      },
+      abortPrompt(prompt) {
+        get().updateCurrentSession((session) => {
+          session.lastUpdate = new Date().toLocaleString();
+          session.prompts.map((_prompt) => {
+            if (_prompt.id === prompt.id) {
+              prompt.abortPrompt = true;
+              prompt.streaming = false;
+            }
+            return _prompt;
+          });
+        });
+      },
+      updateSessionData(sessionID, updater) {
+        const sessions = get().sessions;
+        const session = sessions.filter(
+          (session) => session.id === sessionID
+        )[0];
+        updater(session);
+        set(() => ({ sessions }));
+      },
+      likeSession: (sessionID: any, liked: boolean) => {
+        get().updateSessionData(sessionID, (session) => {
+          session.lastUpdate = new Date().toLocaleString();
+          session.isFvrt = liked;
+        });
+      },
+      updateJWT(jwt: string) {
+        set({
+          jwt: jwt,
+        });
+      },
+      updateLoginStatus(status: boolean) {
+        set({
+          isLoggedIn: status,
+        });
+      },
+      clearSessions() {
+        set(() => ({
+          sessions: [createEmptySession()],
+          currentSessionIndex: 0,
+        }));
+      },
+      updateCreditCount(count?: number) {
+        set((state) => {
+          return {
+            credits: count ?? state.credits - 1,
+          };
+        });
+      },
+      updateCreditStatus(status: boolean) {
+        set({
+          creditStatus: status,
+        });
+      },
+      addMintHistory(mintRes: string) {
+        get().updateCurrentSession((session) => {
+          session.lastUpdate = new Date().toLocaleString();
+          session?.mintHistoryResponse?.push(mintRes);
+        });
+      },
+      removeMintHistory() {
+        get().updateCurrentSession((session) => {
+          console.log("remove mint history");
+          session.mintHistoryResponse = [];
+        });
+      },
+      selectSession(index: number) {
+        set({
+          currentSessionIndex: index,
+        });
+      },
+      removeSession(index: number) {
+        set((state) => {
+          let nextIndex = state.currentSessionIndex;
+          const sessions = state.sessions;
+
+          if (sessions.length === 1) {
+            return {
+              currentSessionIndex: 0,
+              sessions: [createEmptySession()],
+            };
+          }
+
+          sessions.splice(index, 1);
+
+          if (nextIndex === index) {
+            nextIndex -= 1;
+          }
+
+          return {
+            currentSessionIndex: nextIndex,
+            sessions,
+          };
+        });
+      },
+      newSession() {
+        set((state) => ({
+          currentSessionIndex: 0,
+          sessions: [createEmptySession(get().sessions.length)].concat(
+            state.sessions
+          ),
+          mintHistoryResponse: [],
+        }));
+      },
+      currentSession() {
+        let index = get().currentSessionIndex;
+        const sessions = get().sessions;
+
+        if (index < 0 || index >= sessions.length) {
+          index = Math.min(sessions.length - 1, Math.max(0, index));
+          set(() => ({ currentSessionIndex: index }));
+        }
+
+        const session = sessions[index];
+
+        return session;
+      },
+      updateCurrentSession(updater) {
+        const sessions = get().sessions;
+        const index = get().currentSessionIndex;
+        updater(sessions[index]);
+        set(() => ({ sessions }));
+      },
+      updateSessionType(type: PERSONA_TYPES) {
+        get().updateCurrentSession((session) => {
+          session.type = type;
+        });
+      },
+      mintPrompt: async (prompt) => {
+        get().addMintHistory({ role: "user", content: prompt.title });
+        try {
+          const res = await fetch(`${BE_URL}/mintgpt`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              authorization: get().jwt ?? null,
+              apikey: get().api_key ?? null,
+            },
+            body: JSON.stringify({
+              message: prompt.title,
+              history: get()?.currentSession().mintHistoryResponse,
+            }),
+          });
+
+          const data = await res.json();
+          if (data) {
+            prompt.id = new Date().getTime().toLocaleString();
+            prompt.streaming = false;
+            prompt.content = data.response;
+            get().addMintHistory({
+              role: "assistant",
+              content: data.response,
+            });
+            prompt.mintBody = data.body;
+            prompt.isAllCreditsUsed = data.isAllCreditsUser; //typo at the BE! suppose to be data.isAllCreditUsed
+            if (get().isLoggedIn) get().updateUserInfo();
+            else {
+              if (prompt.isAllCreditsUsed) {
+                get().updateCreditCount(0);
+              } else {
+                let updateCount = 1;
+                get().updateCreditCount(updateCount < 1 ? 0 : updateCount);
+              }
+            }
+            get().updateCurrentSession((session) => {
+              session.lastUpdate = new Date().toLocaleString();
+              session.prompts.map((_prompt) => {
+                if (_prompt.id === prompt.id) {
+                  if (_prompt.type === "mint") {
+                    _prompt.mintBody = data.body;
+                  }
+                  _prompt.content = prompt.content;
+                }
+                return _prompt;
+              });
+            });
+          }
+        } catch (error) {
+          return error;
+        } finally {
+          prompt.streaming = false;
+        }
+      },
+      responsePrompt: async (prompt, url, sessionID) => {
+        prompt.streaming = true;
+        // const { abortCurrentPrompt } = useAppState();
+        let history = get()
+          .currentSession()
+          ?.prompts?.map((prompt) => {
+            return prompt.title;
+          });
+        const ctrl = new AbortController();
+        const session_type = get().currentSession()?.type;
+        try {
+          let dataEvent: any = [];
+          fetchEventSource(`${BE_URL}/${url}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              authorization: get().jwt ?? null,
+              "api-key": get().api_key ?? null,
+            },
+            body: JSON.stringify({
+              message: prompt.title,
+              persona: session_type,
+              history: history,
+              conversationId: get().currentSession()?.conversation_id ?? null,
+              answer: get().currentSession()?.latestPromptContent ?? null,
+              contract: get().currentSession()?.isContractDeployment ?? false,
+              isFooter: get().showSources.toString() ?? null,
+              model: get().gptModel ?? null,
+              isRegenerated: prompt?.regeneratedResponses?.length! > 0 ?? false,
+            }),
+            signal: ctrl.signal,
+            openWhenHidden: true,
+            async onopen(response) {
+              if (response.status === 429) {
+                toast.error("All credits used up!");
+                prompt.streaming = false;
+                get().updateCreditStatus(false);
+                get().updateCreditCount(0);
+                prompt.content =
+                  get().isLoggedIn && get().jwt !== ""
+                    ? "All credits used up! Come back tomorrow for more credits."
+                    : "You have no credits left. Please Connect your wallet to get more credits.";
+                get().updateCurrentSession((session) => {
+                  session.lastUpdate = new Date().toLocaleString();
+                  session.prompts.map((_prompt) => {
+                    if (_prompt.id === prompt.id) {
+                      _prompt.content =
+                        get().isLoggedIn && get().jwt !== ""
+                          ? "All credits used up! Come back tomorrow for more credits."
+                          : "You have no credits left. Please Connect your wallet to get more credits.";
+                      _prompt.streaming = false;
+                    }
+                    return _prompt;
+                  });
+                });
+                throw new Error("All credits used up!");
+              }
+            },
+            onmessage: (event) => {
+              if (prompt?.abortPrompt) {
+                ctrl.abort();
+                console.log("Connection aborted!");
+              }
+              const data = JSON.parse(event.data);
+              prompt.id = new Date().getTime().toLocaleString();
+              prompt.isAllCreditsUsed = data.isAllCreditsUsed; //typo at the BE! suppose to be data.isAllCreditUsed
+
+              if (data?.data?.completed) {
+                prompt.fullContentLoaded = true;
+              }
+              if (data?.data?.queries) {
+                get().updateCurrentSession((session) => {
+                  session.lastUpdate = new Date().toLocaleString();
+                  session.prompts?.map((_prompt) => {
+                    if (_prompt.id === prompt.id) {
+                      _prompt.loader_queries = data?.data?.queries;
+                    }
+                  });
+                });
+              }
+
+              if (data?.data?.links) {
+                get().updateCurrentSession((session) => {
+                  session.lastUpdate = new Date().toLocaleString();
+                  session.prompts?.map((_prompt) => {
+                    if (_prompt.id === prompt.id) {
+                      _prompt.loader_links = data?.data?.links;
+                    }
+                  });
+                });
+              }
+
+              if (data?.data?.id !== undefined) {
+                if (get().isLoggedIn) get().updateUserInfo();
+                else get().updateCreditCount();
+              }
+              if (data?.data?.conversationId !== undefined) {
+                get().updateSessionData(sessionID, (session) => {
+                  session.lastUpdate = new Date().toLocaleString();
+                  session.conversation_id = data?.data?.conversationId;
+                });
+              }
+              if (data?.data?.type === "contract") {
+                get().updateCurrentSession((session) => {
+                  session.lastUpdate = new Date().toLocaleString();
+                  session.isContractDeployment = true;
+                });
+              }
+              if (prompt.isAllCreditsUsed) {
+                get().updateCreditCount(0);
+                prompt.streaming = false;
+                get().updateCurrentSession((session) => {
+                  session.lastUpdate = new Date().toLocaleString();
+                  session.prompts.map((_prompt) => {
+                    if (_prompt.id === prompt.id) {
+                      _prompt.streaming = false;
+                    }
+                    return _prompt;
+                  });
+                });
+              } else {
+                data?.data?.id ||
+                  data?.data?.completed ||
+                  data?.data?.conversationId ||
+                  data?.data?.type ||
+                  data?.data?.queries ||
+                  data?.data?.links
+                  ? dataEvent.push("")
+                  : dataEvent.push(data?.data);
+                prompt.content = dataEvent.join("");
+                get().updateCurrentSession((session) => {
+                  session.lastUpdate = new Date().toLocaleString();
+                  session.prompts.map((_prompt) => {
+                    if (_prompt.id === prompt.id) {
+                      _prompt.content = prompt.content;
+                    }
+                    return _prompt;
+                  });
+                });
+                if (data.suggestions) {
+                  prompt.mssgId = data.id;
+                  if (data?.source?.length > 0) {
+                    prompt.sources = data.source;
+                  } else {
+                    prompt.noCitationsFound = true;
+                  }
+                  if (data?.suggestions?.length > 0) {
+                    prompt.suggestions = data.suggestions;
+                  } else {
+                    prompt.noSuggestionsFound = true;
+                  }
+                  get().updateSessionData(sessionID, (session) => {
+                    session.lastUpdate = new Date().toLocaleString();
+                    session.prompts.map((_prompt) => {
+                      if (_prompt.id === prompt.id) {
+                        _prompt.sources = [].concat(prompt?.sources);
+                        _prompt.suggestions = prompt.suggestions;
+                        _prompt.mssgId = prompt.mssgId;
+                      }
+                      return _prompt;
+                    });
+                  });
+                }
+                if (data?.conversationId) {
+                  if (url === "stats") {
+                    if (get().currentSession().prompts.length === 1) {
+                      prompt.content +=
+                        "\n\n using **[surfaceboard.xyz](https://surfaceboard.xyz)** plugin\n";
+                    }
+                  }
+                  get().updateSessionData(sessionID, (session) => {
+                    session.lastUpdate = new Date().toLocaleString();
+                    session.conversation_id = data?.conversationId;
+                    session.latestPromptContent = prompt.content;
+                  });
+                }
+                if (data.showButton) {
+                  if (url === "mint") {
+                    prompt.isMintReady = true;
+                  } else {
+                    prompt.isContractReady = true;
+                  }
+                  get().updateCurrentSession((session) => {
+                    session.lastUpdate = new Date().toLocaleString();
+                    session.prompts.map((_prompt) => {
+                      if (_prompt.id === prompt.id) {
+                        if (url === "mint") {
+                          prompt.isMintReady = true;
+                        } else {
+                          prompt.isContractReady = true;
+                        }
+                      }
+                      return _prompt;
+                    });
+                  });
+                }
+                if (data.sourceCode) {
+                  prompt.sourceCode = data.sourceCode;
+                  get().updateCurrentSession((session) => {
+                    session.lastUpdate = new Date().toLocaleString();
+                    session.prompts.map((_prompt) => {
+                      if (_prompt.id === prompt.id) {
+                        prompt.sourceCode = data.sourceCode;
+                      }
+                      return _prompt;
+                    });
+                  });
+                }
+              }
+            },
+            onclose: () => {
+              ctrl.abort();
+              prompt.streaming = false;
+              get().updateCurrentSession((session) => {
+                session.lastUpdate = new Date().toLocaleString();
+                session.prompts.map((_prompt) => {
+                  if (_prompt.id === prompt.id) {
+                    _prompt.streaming = false;
+                  }
+                  return _prompt;
+                });
+              });
+            },
+            onerror: (error) => {
+              ctrl.abort();
+              prompt.streaming = false;
+              prompt.content =
+                "Error fetching response or all credits used up.";
+              get().updateCurrentSession((session) => {
+                session.lastUpdate = new Date().toLocaleString();
+                session.prompts.map((_prompt) => {
+                  if (_prompt.id === prompt.id) {
+                    _prompt.content =
+                      get().isLoggedIn &&
+                        get().jwt !== "" &&
+                        get()?.credits <= 0
+                        ? "All credits used up! Come back tomorrow for more credits."
+                        : get()?.credits <= 0
+                          ? "You have no credits left. Please Connect your wallet to get more credits."
+                          : "Error fetching response";
+                    _prompt.streaming = false;
+                  }
+                  return _prompt;
+                });
+              });
+              throw new Error("Connection error");
+            },
+          });
+        } catch (error) {
+          get().isLoggedIn && get().jwt !== "" && get()?.credits <= 0
+            ? "All credits used up! Come back tomorrow for more credits."
+            : get()?.credits <= 0
+              ? "You have no credits left. Please Connect your wallet to get more credits."
+              : "Error fetching response";
+          return error;
+        }
+      },
+      likePrompt: async (prompt, liked) => {
+        get().updateCurrentSession((session) => {
+          session.lastUpdate = new Date().toLocaleString();
+          session.prompts.map((_prompt) => {
+            if (_prompt.id === prompt.id) {
+              if (_prompt.feedback["liked"] && liked) {
+                _prompt.feedback["liked"] = false;
+              } else if (_prompt.feedback["disliked"] && liked === false) {
+                _prompt.feedback["disliked"] = false;
+              } else {
+                prompt.feedback = { liked: false, disliked: false };
+                liked
+                  ? (_prompt.feedback["liked"] = true)
+                  : (_prompt.feedback["disliked"] = true);
+              }
+            }
+            return _prompt;
+          });
+        });
+      },
+      onNewPrompt: async (prompt) => {
+        get().updateCurrentSession((session) => {
+          session.lastUpdate = new Date().toLocaleString();
+          session.prompts.push(prompt);
+          session.topic = session.prompts[0].title;
+        });
+        prompt.regeneratedResponses = [];
+        prompt.loader_links = [];
+        prompt.loader_queries = [];
+        prompt.fullContentLoaded = false;
+        prompt.noCitationsFound = false;
+        prompt.noSuggestionsFound = false;
+        prompt.isContractReady = false;
+        prompt.sources = [];
+        prompt.feedback = { liked: false, disliked: false };
+        if (prompt.type === "stats")
+          get().responsePrompt(prompt, "stats", get().currentSession().id);
+        else if (prompt.type === "mint")
+          get().responsePrompt(prompt, "mint", get().currentSession().id);
+        else if (prompt.type === "faucet")
+          get().responsePrompt(prompt, "faucet", get().currentSession().id);
+        else get().responsePrompt(prompt, "chat", get().currentSession().id);
+      },
+      onRegeneratePrompt: async (promptID) => {
+        get().updateCurrentSession((session) => {
+          session.lastUpdate = new Date().toLocaleString();
+          session.topic = session.prompts[0].title;
+        });
+        let prompt = get()
+          .currentSession()
+          .prompts.filter((_prompt) => _prompt.id === promptID?.toString())[0];
+        console.log("prompt", prompt);
+        if (prompt) {
+          if (prompt?.content) {
+            prompt.regeneratedResponses?.push(prompt.content);
+            prompt.content = "";
+          }
+          prompt.fullContentLoaded = false;
+          prompt.noCitationsFound = false;
+          prompt.txData = null;
+          prompt.isMintReady = false;
+          prompt.noSuggestionsFound = false;
+          prompt.isContractReady = false;
+          prompt.sources = [];
+          prompt.loader_links = [];
+          prompt.loader_queries = [];
+          prompt.feedback = { liked: false, disliked: false };
+          if (prompt.type === "stats")
+            get().responsePrompt(prompt, "stats", get().currentSession().id);
+          else if (prompt.type === "mint")
+            get().responsePrompt(prompt, "mint", get().currentSession().id);
+          else if (prompt.type === "faucet")
+            get().responsePrompt(prompt, "faucet", get().currentSession().id);
+          else get().responsePrompt(prompt, "chat", get().currentSession().id);
+        }
+      },
+    }),
+    { name: APP_KEY }
+  )
+);
