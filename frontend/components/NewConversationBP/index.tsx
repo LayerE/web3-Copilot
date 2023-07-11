@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Column from "../common/Column";
-import { TEXT } from "@/theme/texts";
 import assets from "@/public/assets";
-import Row, { GridAutoWrap } from "../common/Row";
+import Row, { GridAutoWrap, ResponsiveRow } from "../common/Row";
 import Image from "next/image";
 import { ArrowRight, ChevronDown, Info, Terminal } from "react-feather";
 import { useAppState } from "@/context/app.context";
@@ -12,10 +11,7 @@ import { useOnClickOutside } from "@/hooks/useOnClickOutside";
 import Tippy from "@tippyjs/react";
 import { useTour } from "@reactour/tour";
 import { theme } from "@/theme";
-import ChatGPTLogo from "../BrandFooters/ChatGPTLogo";
-import LayerELogo from "../BrandFooters/LayerELogo";
 import Header from "../Header";
-import { BrandLogo } from "../app/Header";
 
 const examplePromptsData = {
   dev: {
@@ -136,12 +132,20 @@ const NewConversationBP = () => {
           maxWidth: `${theme().ctrSizes.maxAppCtrWidth}`,
         }}
       >
-        <div style={{ textAlign: "center" }}>
+        <Header />
+        <ResponsiveRow
+          style={{
+            justifyContent: "center",
+            gap: "1rem",
+          }}
+        >
+          <Image src={assets.logos.logo_new_copilot} alt="" />
           <Column
             style={{
               justifyContent: "center",
               alignItems: "center",
-              padding: "1rem",
+              textAlign: "center",
+              width: "fit-content",
             }}
           >
             <AppTitle>
@@ -151,7 +155,7 @@ const NewConversationBP = () => {
               Your Web3 Assistant for all your Collectible Relationship
             </span>
           </Column>
-        </div>
+        </ResponsiveRow>
         <PersonasWrapper ref={node} className="tour_personas">
           {Personas?.map((persona, idx) => (
             <Tippy
@@ -195,40 +199,15 @@ const NewConversationBP = () => {
             ))
           }
         </PromptExamples>{" "}
-        {/* <Note>
-          <p>
-            Polygon Copilot leverages nascent AI technology that may provide
-            inaccurate information.
-            {<span className="_note_details"></span>}
-          </p>
-          <Tippy
-            content="Please do not rely on information provided by Polygon Copilot
-                  to make any financial, legal, or other decisions for which you
-                  should seek independent professional advice from an individual
-                  who is licensed and qualified in these areas."
-            placement="top"
-          >
-            <p className="_more_info">
-              <Info size={15} />
-            </p>
-          </Tippy>
-        </Note> */}
-        <FooterBrands>
-          {/* <ChatGPTLogo />
-          <LayerELogo /> */}
-          <Header />
-        </FooterBrands>
       </Column>
     </NewConversationBPWrapper>
   );
 };
 
-const FooterBrands = styled(Row)`
+const HeaderWrapper = styled(Row)`
   width: 100%;
-  padding: 0.5rem;
   position: absolute;
   top: 0rem;
-  right: 0.5rem;
   gap: 0.5rem;
 `;
 const Note = styled.p`
@@ -312,8 +291,18 @@ const AppTitle = styled.h2`
   color: #eee7f9;
   position: relative;
   display: flex;
+  text-align: center;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(
+    90.43deg,
+    #fafbfc 19.92%,
+    #9db6c9 43.48%,
+    #ffffff 67.03%,
+    #71828f 80.96%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   ._beta {
     position: absolute;
     top: -0.75rem;
@@ -359,7 +348,7 @@ const PromptCard = styled(Column)`
     overflow: hidden;
     padding: 0.15rem 0.35rem;
     border-radius: 0.25rem;
-    background: #212026;
+    background: ${(props) => props.theme.btnPrimary};
     box-shadow: 0px 4px 2px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.25);
     cursor: pointer;

@@ -4,9 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { nanoid } from "nanoid";
-import { useAppState } from "@/context/app.context";
 import { models } from "@/components/GPTModelDropDown";
-import { Session } from "inspector";
 export enum SubmitKey {
   Enter = "Enter",
   CtrlEnter = "Ctrl + Enter",
@@ -15,9 +13,7 @@ export enum SubmitKey {
   MetaEnter = "Meta + Enter",
 }
 
-
-export const BE_URL = "http://localhost:5000"
-
+export const BE_URL = "https://polygon-copilot-testing.up.railway.app";
 
 export interface Prompt {
   id?: number | string;
@@ -46,7 +42,7 @@ export interface Prompt {
 const DEFAULT_TOPIC = "New conversation";
 export type PERSONA_TYPES = "new_dev" | "dev" | "validator";
 export interface ChatSession {
-  id: number;
+  id: string;
   conversation_id?: number | string;
   topic: string;
   prompts: Prompt[];
@@ -62,7 +58,7 @@ export interface ChatSession {
 function createEmptySession(idx?: number): ChatSession {
   const createDate = new Date().toLocaleString();
   return {
-    id: Date.now(),
+    id: nanoid(),
     topic: idx ? `${DEFAULT_TOPIC} - ${idx}` : DEFAULT_TOPIC,
     prompts: [],
     lastUpdate: createDate,
@@ -81,7 +77,7 @@ interface ChatStore {
   credits: number;
   creditStatus: boolean;
   user: any;
-  currentSessionIndex: number;
+  currentSessionID: string | null;
   isLoggedIn: boolean;
   jwt: string;
   showSources: boolean;
@@ -94,8 +90,8 @@ interface ChatStore {
   updateUserInfo: () => void;
   updateJWT: (jwt: string) => void;
   updateLoginStatus: (status: boolean) => void;
-  removeSession: (index: number) => void;
-  selectSession: (index: number) => void;
+  removeSession: (sessionID: string) => void;
+  selectSession: (sessionID: string) => void;
   onNewPrompt: (prompt: Prompt) => void;
   onRegeneratePrompt: (promptID: string) => void;
   updateCurrentSession: (updater: (session: ChatSession) => void) => void;
@@ -108,11 +104,11 @@ interface ChatStore {
   currentSession: () => ChatSession;
   mintPrompt: (prompt: Prompt) => void;
   updateHideSourceStatus: (status: boolean) => void;
-  responsePrompt: (prompt: Prompt, url: string, sessionID: number) => void;
+  responsePrompt: (prompt: Prompt, url: string, sessionID: string) => void;
   abortPrompt: (prompt: Prompt) => void;
   updateSiteAccessStatus: (giveAccess: boolean) => void;
   updateSessionData: (
-    sessionID: number,
+    sessionID: string,
     updater: (session: ChatSession) => void
   ) => void;
 }
@@ -139,7 +135,7 @@ export const useChatStore = create<ChatStore>()(
     (set, get) => ({
       gptModel: models[1],
       sessions: [createEmptySession()],
-      currentSessionIndex: 0,
+      currentSessionID: null,
       api_key: "",
       credits: 1,
       hasSiteAccess: false,
@@ -188,7 +184,7 @@ export const useChatStore = create<ChatStore>()(
           );
           const createDate = new Date().toLocaleString();
           const new_session = {
-            id: Date.now(),
+            id: nanoid(),
             continuedSessionID: conversationID,
             topic: `${combinedRes[0]?.title}`,
             prompts: combinedRes,
@@ -199,7 +195,7 @@ export const useChatStore = create<ChatStore>()(
           };
 
           set((state) => ({
-            currentSessionIndex: 0,
+            currentSessionID: null,
             sessions: [new_session as ChatSession].concat(state.sessions),
             mintHistoryResponse: [],
           }));
@@ -261,9 +257,9 @@ export const useChatStore = create<ChatStore>()(
         });
       },
       clearSessions() {
-        set(() => ({
+        set((state) => ({
           sessions: [createEmptySession()],
-          currentSessionIndex: 0,
+          currentSessionID: state.sessions[0].id,
         }));
       },
       updateCreditCount(count?: number) {
@@ -290,61 +286,52 @@ export const useChatStore = create<ChatStore>()(
           session.mintHistoryResponse = [];
         });
       },
-      selectSession(index: number) {
+      selectSession(sessionID: string) {
         set({
-          currentSessionIndex: index,
+          currentSessionID: sessionID,
         });
       },
-      removeSession(index: number) {
+      removeSession(sessionID: string) {
+        console.log("delete session", sessionID);
         set((state) => {
-          let nextIndex = state.currentSessionIndex;
-          const sessions = state.sessions;
+          const sessions = state.sessions.filter(
+            (session) => session.id !== sessionID
+          );
 
-          if (sessions.length === 1) {
+          if (sessions.length === 0) {
             return {
-              currentSessionIndex: 0,
               sessions: [createEmptySession()],
+              currentSessionID: state.sessions[0].id ?? null,
             };
           }
 
-          sessions.splice(index, 1);
-
-          if (nextIndex === index) {
-            nextIndex -= 1;
-          }
-
           return {
-            currentSessionIndex: nextIndex,
+            currentSessionID: state.sessions[0].id,
             sessions,
           };
         });
       },
       newSession() {
+        const newSession = createEmptySession(get().sessions.length);
         set((state) => ({
-          currentSessionIndex: 0,
-          sessions: [createEmptySession(get().sessions.length)].concat(
-            state.sessions
-          ),
+          sessions: [newSession].concat(state.sessions),
+          currentSessionID: newSession.id,
           mintHistoryResponse: [],
         }));
       },
       currentSession() {
-        let index = get().currentSessionIndex;
-        const sessions = get().sessions;
+        const session = get().sessions.find(
+          (session) => session.id === get().currentSessionID
+        );
 
-        if (index < 0 || index >= sessions.length) {
-          index = Math.min(sessions.length - 1, Math.max(0, index));
-          set(() => ({ currentSessionIndex: index }));
-        }
-
-        const session = sessions[index];
-
-        return session;
+        return session ?? get().sessions[0];
       },
       updateCurrentSession(updater) {
         const sessions = get().sessions;
-        const index = get().currentSessionIndex;
-        updater(sessions[index]);
+        const session = get().sessions.find(
+          (session) => session.id === get().currentSessionID
+        );
+        if (session) updater(session);
         set(() => ({ sessions }));
       },
       updateSessionType(type: PERSONA_TYPES) {
@@ -529,11 +516,11 @@ export const useChatStore = create<ChatStore>()(
                 });
               } else {
                 data?.data?.id ||
-                  data?.data?.completed ||
-                  data?.data?.conversationId ||
-                  data?.data?.type ||
-                  data?.data?.queries ||
-                  data?.data?.links
+                data?.data?.completed ||
+                data?.data?.conversationId ||
+                data?.data?.type ||
+                data?.data?.queries ||
+                data?.data?.links
                   ? dataEvent.push("")
                   : dataEvent.push(data?.data);
                 prompt.content = dataEvent.join("");
@@ -641,12 +628,12 @@ export const useChatStore = create<ChatStore>()(
                   if (_prompt.id === prompt.id) {
                     _prompt.content =
                       get().isLoggedIn &&
-                        get().jwt !== "" &&
-                        get()?.credits <= 0
+                      get().jwt !== "" &&
+                      get()?.credits <= 0
                         ? "All credits used up! Come back tomorrow for more credits."
                         : get()?.credits <= 0
-                          ? "You have no credits left. Please Connect your wallet to get more credits."
-                          : "Error fetching response";
+                        ? "You have no credits left. Please Connect your wallet to get more credits."
+                        : "Error fetching response";
                     _prompt.streaming = false;
                   }
                   return _prompt;
@@ -659,8 +646,8 @@ export const useChatStore = create<ChatStore>()(
           get().isLoggedIn && get().jwt !== "" && get()?.credits <= 0
             ? "All credits used up! Come back tomorrow for more credits."
             : get()?.credits <= 0
-              ? "You have no credits left. Please Connect your wallet to get more credits."
-              : "Error fetching response";
+            ? "You have no credits left. Please Connect your wallet to get more credits."
+            : "Error fetching response";
           return error;
         }
       },
@@ -690,6 +677,7 @@ export const useChatStore = create<ChatStore>()(
           session.prompts.push(prompt);
           session.topic = session.prompts[0].title;
         });
+        prompt.abortPrompt = false;
         prompt.regeneratedResponses = [];
         prompt.loader_links = [];
         prompt.loader_queries = [];
@@ -721,6 +709,7 @@ export const useChatStore = create<ChatStore>()(
             prompt.regeneratedResponses?.push(prompt.content);
             prompt.content = "";
           }
+          prompt.abortPrompt = false;
           prompt.fullContentLoaded = false;
           prompt.noCitationsFound = false;
           prompt.txData = null;

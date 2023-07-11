@@ -27,6 +27,7 @@ import Image from "next/image";
 import { isMacintosh } from "@/utils/common";
 import Tippy from "@tippyjs/react";
 import { useTour } from "@reactour/tour";
+import { colors } from "@/theme/colors";
 
 const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
   const {
@@ -46,10 +47,6 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
   const { open, setTabID } = useAppState();
   const footerRef = useRef<HTMLDivElement>(null);
   const [footerHeight, setHeight] = useState(224);
-  const [sessionAndFvrtCount, setSessionAndFvrtCount] = useState({
-    sessionCount: 0,
-    fvrtsCount: 0,
-  });
 
   // const showSettingModalTour = () => {
   //   setIsOpen(true);
@@ -58,13 +55,15 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
     if (sessions[0]?.prompts?.length > 0) {
       newSession();
     } else {
-      selectSession(0);
+      selectSession(sessions[0].id);
     }
   };
   const _sessions = useMemo(() => {
     return sessions;
   }, [historyNav?.fvrts, historyNav?.recent, sessions]);
-
+  const _fvrtSessions = useMemo(() => {
+    return sessions.filter((session) => session.isFvrt);
+  }, [sessions.filter((session) => session.isFvrt).length]);
   useEffect(() => {
     if (footerRef?.current) {
       setHeight(footerRef?.current?.scrollHeight);
@@ -72,12 +71,9 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
   }, [footerRef?.current, footerHeight, isLoggedIn]);
 
   useEffect(() => {
-    if (sessions) {
-      const sessionCount = sessions.length;
-      const fvrtsCount = sessions.filter((session) => session?.isFvrt).length;
-      setSessionAndFvrtCount({ sessionCount, fvrtsCount });
-    }
-  }, [sessions]);
+    selectSession(sessions[0].id);
+  }, []);
+  console.log("current session", currentSession());
   return (
     <SidebarWrapper navheight={showMenu ? "100%" : "3.5rem"}>
       <ShowMedium>
@@ -110,38 +106,18 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
         >
           <Column
             style={{
-              padding: "1rem",
               gap: "2rem",
-              paddingBottom: 0,
               alignItems: "center",
+              borderBottom: `1px solid ${colors()?.stroke}`,
+              padding: "1rem",
             }}
           >
             <BrandLogo hideBetaLogo={true} />
             <HideMedium style={{ width: "100%" }}>
-              {/* <Tippy
-                content={
-                  sessions[0]?.prompts?.length > 0
-                    ? "Start a new chat with Copilot"
-                    : "Hey, you’re already in a new chat"
-                }
-                placement="right"
-              > */}
-              <NewChatButton
-                id="new-chat"
-                onClick={creatNewSession}
-                className="tour_new_chat"
-              >
+              <NewChatButton id="new-chat" className="tour_new_chat">
                 <Zap size="1.25rem" />
                 <span>Switch to AI Agent</span>
-                <span
-                  style={{
-                    fontSize: ".8rem",
-                  }}
-                >
-                  {/* {isMacintosh() ? "⌘ + k" : "ctrl + k"} */}
-                </span>
               </NewChatButton>
-              {/* </Tippy> */}
             </HideMedium>
           </Column>
 
@@ -153,75 +129,57 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
           >
             {jwt && isLoggedIn ? (
               <>
-                <span
+                <Button
                   style={{
                     display: "flex",
-
-                    flexDirection: "column",
+                    alignItems: "center",
                     gap: ".5rem",
-                    padding: "0.5rem 1.2rem",
+                    background: "transparent",
                   }}
+                  onClick={creatNewSession}
                 >
-                  <Button
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: ".5rem",
-                      background: "transparent",
-                    }}
-                    onClick={creatNewSession}
-                  >
-                    <Plus size="1rem" />
-                    <span>New Chat</span>
-                  </Button>
-                </span>
-                {_sessions?.length >= 1 &&
-                  _sessions?.slice(0, 1).map((session, idx) => (
-                    <Session
-                      key={idx}
-                      title={session.topic}
-                      id={session.id! as number}
-                      persona={session?.type}
-                      isActive={session?.id === currentSession()?.id}
-                      closeMenu={() => setShowMenu(false)}
-                      convoID={session.conversation_id as string}
-                      deleteSession={() => removeSession(idx)}
-                      session={session}
-                      selectSession={() => {
-                        selectSession(idx);
-                        if (currentSession().prompts.length > 0) onChangeTab();
-                      }}
-                    />
-                  ))}
+                  <Plus size="1rem" />
+                  <span>New Chat</span>
+                </Button>
 
-                <Tab isActive={historyNav?.fvrts}>
-                  <span>Favourites ({sessionAndFvrtCount?.fvrtsCount})</span>
-                </Tab>
-              </>
-            ) : null}
-            {jwt && isLoggedIn && sessionAndFvrtCount?.sessionCount > 0 ? (
-              <>
                 {_sessions?.length >= 1 &&
                   _sessions
-                    ?.filter((id) => id.isFvrt)
-                    ?.map((session, idx) => (
+                    ?.filter((id) => !id.isFvrt)
+                    .map((session, idx) => (
                       <Session
                         key={idx}
-                        title={session.topic}
-                        id={session.id! as number}
-                        persona={session?.type}
                         isActive={session?.id === currentSession()?.id}
                         closeMenu={() => setShowMenu(false)}
-                        convoID={session.conversation_id as string}
-                        deleteSession={() => removeSession(idx)}
+                        deleteSession={() => removeSession(session?.id)}
                         session={session}
                         selectSession={() => {
-                          selectSession(idx);
+                          selectSession(session?.id);
                           if (currentSession().prompts.length > 0)
                             onChangeTab();
                         }}
                       />
                     ))}
+
+                <Tab isActive={historyNav?.fvrts}>
+                  <span>Favourites ({_fvrtSessions?.length})</span>
+                </Tab>
+              </>
+            ) : null}
+            {jwt && isLoggedIn && _fvrtSessions?.length > 0 ? (
+              <>
+                {_fvrtSessions?.map((session, idx) => (
+                  <Session
+                    key={idx}
+                    isActive={session?.id === currentSession()?.id}
+                    closeMenu={() => setShowMenu(false)}
+                    deleteSession={() => removeSession(session?.id)}
+                    session={session}
+                    selectSession={() => {
+                      selectSession(session?.id);
+                      if (currentSession().prompts.length > 0) onChangeTab();
+                    }}
+                  />
+                ))}
               </>
             ) : _sessions?.length < 1 ? (
               <p
@@ -242,31 +200,6 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
                   Looks like you don{"'"}t <br /> have a favourite session.
                 </span>
               </p>
-            ) : null}
-            <Tab>
-              <span>Recents</span>
-            </Tab>
-            {jwt && isLoggedIn && sessionAndFvrtCount?.sessionCount > 0 ? (
-              <>
-                {_sessions?.length >= 1 &&
-                  _sessions?.slice(1, _sessions.length).map((session, idx) => (
-                    <Session
-                      key={idx}
-                      title={session.topic}
-                      id={session.id! as number}
-                      persona={session?.type}
-                      isActive={session?.id === currentSession()?.id}
-                      closeMenu={() => setShowMenu(false)}
-                      convoID={session.conversation_id as string}
-                      deleteSession={() => removeSession(idx)}
-                      session={session}
-                      selectSession={() => {
-                        selectSession(idx);
-                        if (currentSession().prompts.length > 0) onChangeTab();
-                      }}
-                    />
-                  ))}
-              </>
             ) : null}
 
             {!jwt && !isLoggedIn && (
@@ -306,9 +239,10 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
                     open("showAppSettings");
                     setTabID(3);
                   }}
+                  style={{ justifyContent: "space-between" }}
                 >
                   <span>
-                    Your Credits :{" "}
+                    Credit Balance :{" "}
                     {api_key ? <span>N{"/"}A</span> : <span>{credits}</span>}{" "}
                   </span>
 
@@ -366,7 +300,6 @@ export const BtnImgWrapper = styled.div`
   height: 28px;
   display: grid;
   place-items: center;
-
   border: 0.5px solid white;
   border-radius: 8px;
 `;
@@ -489,8 +422,7 @@ const CreditsBtn = styled(Button)`
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 50px;
-  padding: 0px 10px;
+  padding: 1rem;
   gap: 10px;
   border-radius: 12px;
   background: rgba(66, 66, 66, 0.3);
@@ -504,9 +436,8 @@ const NewChatButton = styled(Button)`
   border-radius: 12px;
   background: #722424;
   display: flex;
-
-  height: 60px;
-
+  padding: 1rem;
+  gap: 0.5rem;
   justify-content: center;
   align-items: center;
 `;

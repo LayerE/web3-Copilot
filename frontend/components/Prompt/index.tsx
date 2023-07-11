@@ -249,9 +249,7 @@ const Prompt: FC<{
   return (
     <PromptWrapper>
       <PromptTitle>
-        <PersonaIcon />
         <ReadMore text={prompt.title} />
-        {/* <span>{prompt.title}</span> */}
         {prompt?.fullContentLoaded && (
           <span
             className="_copyPromptBtn"

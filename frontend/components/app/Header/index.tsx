@@ -24,7 +24,7 @@ export const BrandLogo = ({
               alignItems: "center",
             }
           : {
-              width: "150px",
+              width: "100px",
               gap: ".35rem",
               alignItems: "center",
             }
