@@ -12,7 +12,7 @@ import writeConversations from "./handlers/write-conversations.js";
 import getSiteData from "./scraper/get-site-data.js";
 
 import { getNFTRoute, getDataExplain } from "./prompts/get-nftRoute.js";
-import { getNFTAnalytics } from "./nft-analytics.js";
+import { getNFTAnalytics, getWalletAnalytics } from "./nft-analytics.js";
 import getAPIKeyCheck from "./api-key-check.js";
 import getMessageType from "./prompts/get-message-type.js";
 import getCodeResponse from "./prompts/get-code-response.js";
@@ -37,7 +37,7 @@ import { recordAnalyticsAndWriteConversation } from "./handlers/recordAnalytics.
 import getAlgoliaGptResponse from "./get-algolia-gpt-response.js";
 import agentAnalyze from "./prompts/agent-analyze.js";
 import agentStart from "./prompts/agent-start.js";
-
+import agentExplainer from "./prompts/agent-explainer.js";
 export {
   polygonWikiParser,
   getSource,
@@ -74,4 +74,6 @@ export {
   getSiteData,
   agentAnalyze,
   agentStart,
+  agentExplainer,
+  getWalletAnalytics,
 };

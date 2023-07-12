@@ -21,18 +21,17 @@ export default async function (goal, apiKey, model, task) {
       name: "NFT_Insights",
       description:
         "Get Top Collections, Top NFTs,Top NFTs Sold, Defi data, and Matic price",
-      args: "none",
+      args: "query related to nft",
     },
     {
       name: "dappRadar",
-      description:
-       "Get top dapps by volume, users, and transactions",
+      description: "Get top dapps by volume, users, and transactions",
       args: "none",
     },
     {
-      name: 'code',
-      description: 'Helps you write code or debug code',
-      args: 'none'
+      name: "code",
+      description: "Helps you write code or debug code",
+      args: "none",
     },
   ];
 

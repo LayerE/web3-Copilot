@@ -66,4 +66,22 @@ const getNFTAnalytics = async (message, walletAddress, apiKey, url) => {
   }
 };
 
-export { getNFTAnalytics };
+const getWalletAnalytics = async (message, walletAddress) => {
+  try {
+    if (!walletAddress) return { dataJSON: "false", duration: "false" };
+    const dataFetch = await axios.get(
+      `https://nftsurfaceboard.up.railway.app/v1/wallet/insights/${walletAddress}`
+    );
+    let duration = dataFetch?.data?.duration
+      ? dataFetch?.data?.duration
+      : "24hours";
+    let dataJSON = dataFetch?.data?.data
+      ? dataFetch?.data?.data
+      : dataFetch?.data;
+    return { dataJSON, duration };
+  } catch (error) {
+    console.log(error);
+    return { dataJSON: "false", duration: "false" };
+  }
+};
+export { getNFTAnalytics, getWalletAnalytics };

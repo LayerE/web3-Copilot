@@ -17,6 +17,8 @@ import {
   recordAnalyticsAndWriteConversation,
   agentAnalyze,
   agentStart,
+  agentExplainer,
+  getWalletAnalytics,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
 import restrictedKeywords from "../helpers/handlers/restrictedKeywords.js";
@@ -28,9 +30,10 @@ const AgentTasks = async (req, res) => {
     const { goal, name } = req.body;
     if (!goal || !name)
       return res.status(400).json({ message: "Invalid request" });
+    const id = uuidv4();
     const tasks = await agentStart(goal, false, "gpt-3.5-turbo", name);
     if (!tasks) return res.status(400).json({ message: "Invalid request" });
-    res.status(200).json({ tasks });
+    res.status(200).json({ tasks, id });
   } catch (error) {
     console.log(error);
     res.status(503).json({ message: "Something went wrong." });
@@ -40,8 +43,10 @@ const AgentTasks = async (req, res) => {
 const AgentAnalyze = async (req, res) => {
   try {
     const { goal, task } = req.body;
+
     if (!goal || !task)
       return res.status(400).json({ message: "Invalid request" });
+
     let tasks = await agentAnalyze(goal, false, "gpt-3.5-turbo", task);
     let maxRetries = 5;
     while (!tasks && maxRetries > 0) {
@@ -54,17 +59,18 @@ const AgentAnalyze = async (req, res) => {
     console.log("Agent analyze tasks:", tasks);
     if (tasks) {
       let toolData = { type: "text", data: "No data found" };
+      console.log("Agent analyze tasks:", tasks?.tool);
       switch (tasks?.tool) {
         case "Search":
-          let q = await createQuery(task, false, "gpt-3.5-turbo", tasks?.args);
+          let q = tasks?.args?.arg;
           if (q) {
             console.log("Search query:", q);
-            q = q.replace(/"/g, "") || tasks?.args;
+            q = q.replace(/"/g, "") || tasks?.args?.arg;
             const searchResults = await getSearchResults(q);
             let searchData = validateSearchResults(
               searchResults,
               "new_dev",
-              false,
+              req.body?.answer || "",
               "gpt-3.5-turbo"
             );
             if (searchData) {
@@ -74,32 +80,42 @@ const AgentAnalyze = async (req, res) => {
           break;
         case "code":
         case "contract":
-          toolData = { type: "code", data: tasks?.args };
+          toolData = { type: "code", data: task };
           break;
         case "dapp-radar":
-          const dappRadar = await getDappRadar(tasks?.args);
+          const dappRadar = await getDappRadar(task);
           toolData = { type: "dapp-radar", data: dappRadar };
           break;
         case "NFT_Insights":
-          const nftAnalytics = await getNFTAnalytics(tasks?.args?.reasoning);
+          const nftAnalytics = await getNFTAnalytics(task);
           toolData = { type: "nft-analytics", data: nftAnalytics };
           break;
+        case "Wallet_Insights":
+          const walletAnalytics = await getWalletAnalytics(
+            task,
+            tasks?.args?.arg
+          );
+          toolData = { type: "wallet-analytics", data: walletAnalytics };
+          break;
+
         default:
           toolData = { type: "web", data: tasks?.args };
       }
       if (!toolData)
         return res.status(400).json({ message: "Invalid request" });
-      const chat = await getChatResponse(
-        toolData?.data,
-        task,
-        "new_dev",
-        [],
-        false,
-        false,
-        "web",
-        false,
-        "gpt-4"
-      );
+
+      const chat =
+        toolData?.type === "code"
+          ? await getCodeResponse(task, goal, "new_dev", false, false, "gpt-4")
+          : await agentExplainer(
+              toolData?.data,
+              task,
+              goal,
+              req.body.answer ?? false,
+              false,
+              false,
+              "gpt-4"
+            );
       if (!chat) return res.status(400).json({ message: "Invalid request" });
       res.writeHead(200, {
         "Content-Type": "text/event-stream",

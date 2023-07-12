@@ -38,10 +38,10 @@ export async function getNFTRoute(message, walletAddress, apiKey) {
       - /marketOverview/mean
           Summary: Get Polygon/Matic Price (contains mean,median,current price,24hr change in USD and %)
       if it matches for more than one route then return the route in an array.
-      ex: if the message is "what is the price of matic and gas price" then return ["/marketOverview/mean","/defi?type=gasPrice"] in JSON format.
+      ex: if the message is "what is the price of matic and gas price" then return ["/marketOverview/mean","/defi?type=gasPrice"] in JSON format. Max 2 routes allowed.
       Please only return the route. If the prompt asks for a format such as markdown or a simple string, ignore it. You are only meant to provide the information, not the formatting.
       ${message}
-
+      It should be JSON.parse()
       *Strictly follow the format of the response.*
       ["routes"]
       `;
