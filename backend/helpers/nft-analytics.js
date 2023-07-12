@@ -68,6 +68,8 @@ const getNFTAnalytics = async (message, walletAddress, apiKey, url) => {
 
 const getWalletAnalytics = async (message, walletAddress) => {
   try {
+    // remove ' or " from walletAddress
+    walletAddress = walletAddress.replace(/['"]+/g, "");
     if (!walletAddress) return { dataJSON: "false", duration: "false" };
     const dataFetch = await axios.get(
       `https://nftsurfaceboard.up.railway.app/v1/wallet/insights/${walletAddress}`
