@@ -2,28 +2,16 @@ import { BE_URL, useChatStore } from "@/store";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Column from "../common/Column";
-import { TEXT } from "@/theme/texts";
 import Button from "../common/Button";
 import Row from "../common/Row";
 import Image from "next/image";
-import {
-  ArrowUpRight,
-  AtSign,
-  CheckCircle,
-  Circle,
-  LogOut,
-  MinusCircle,
-  Trash,
-  Trash2,
-} from "react-feather";
-import { DisabledLabel } from "../common/Label";
-import { ReferralCode } from "./ReferralInfo";
+import { ArrowUpRight, LogOut, MinusCircle } from "react-feather";
 import { trimAddress } from "@/utils/common";
 import ICONS from "@/public/assets/icons/social-icons";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import Tippy from "@tippyjs/react";
-import { useAccount, useDisconnect } from "wagmi";
+import { useDisconnect } from "wagmi";
 import { useAppState } from "@/context/app.context";
 
 const ConnectSocials = () => {
@@ -91,7 +79,7 @@ const ConnectSocials = () => {
           />
           <Column>
             <p>{trimAddress(user?.wallet)}</p>
-            <p style={{ fontSize: ".8rem", color: "#8342F2" }}>
+            <p style={{ fontSize: ".8rem", color: "var(--color-imp)" }}>
               Credits: {credits}
             </p>{" "}
           </Column>
@@ -128,13 +116,13 @@ const ConnectSocials = () => {
             <Button
               style={{
                 background: "none",
-                color: "#8342F2",
+                color: "var(--color-imp)",
                 padding: "0",
                 gap: ".15rem",
               }}
               onClick={() => login("discord")}
             >
-              <ICONS.DiscordIcon color="#8342F2" />
+              <ICONS.DiscordIcon color="var(--color-imp)" />
               <span>Connect Discord</span>
             </Button>
           ) : (
@@ -209,8 +197,8 @@ const DisconnectWallet = styled(Button)`
   background: none;
   color: #fff;
   text-decoration: none;
-  border: 1px solid #8342f2;
-  background: rgba(131, 66, 242, 0.2);
+  border: 1px solid var(--btn-outline);
+  background: var(--btn-bg);
   border-radius: 2rem;
   align-items: center;
   justify-content: center;
@@ -232,8 +220,8 @@ const TermLinks = styled(Row)`
     color: #fff;
     display: block;
     text-decoration: none;
-    border: 1px solid #8342f2;
-    background: rgba(131, 66, 242, 0.2);
+    border: 1px solid var(--btn-outline);
+    background: var(--btn-bg);
     padding: 2px 0.5rem;
     border-radius: 1rem;
     display: flex;
@@ -259,6 +247,9 @@ const SocialIcon = styled(Button)`
   color: #807f8b;
 `;
 const ConnectSocialsWrapper = styled(Column)`
+  --btn-bg: rgba(114, 36, 36, 0.6);
+  --btn-outline: rgba(114, 36, 36, 0.8);
+  --color-imp: ${(props) => props.theme.imp};
   gap: 1.25rem;
 `;
 const ConnectSocial = styled(Column)`

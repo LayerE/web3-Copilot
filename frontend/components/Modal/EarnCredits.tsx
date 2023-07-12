@@ -13,6 +13,7 @@ import Image from "next/image";
 import assets from "@/public/assets";
 import { copyToClipboard, creditsCalc } from "@/utils/common";
 import { DisabledLabel } from "../common/Label";
+import { colors } from "@/theme/colors";
 
 type LoadingProps = {
   verifyingTwitter: boolean;
@@ -111,16 +112,16 @@ const EarnCredits = () => {
             <span style={{ fontSize: ".9rem" }}>
               Current Credits :{" "}
               {api_key ? (
-                <span style={{ color: "#A976FF" }}>N{"/"}A</span>
+                <span style={{ color: colors()?.imp }}>N{"/"}A</span>
               ) : (
-                <span style={{ color: "#A976FF" }}>{credits}</span>
+                <span style={{ color: colors()?.imp }}>{credits}</span>
               )}
             </span>
           </Row>{" "}
           <Row gap=".25rem" width="fit-content">
             <span style={{ fontSize: ".9rem" }}>
               Credits Earned:{" "}
-              <span style={{ color: "#A976FF" }}>
+              <span style={{ color: colors()?.imp }}>
                 {" "}
                 {user?.totalTokensEarned}
               </span>
@@ -132,7 +133,7 @@ const EarnCredits = () => {
             You will get {creditsCalc(credits)} credits in{" "}
             <span
               style={{
-                background: "#5c2da7b1",
+                background: colors()?.btnPrimary,
                 padding: "1px .3rem",
                 borderRadius: ".25rem",
                 color: "#fff",
@@ -186,41 +187,6 @@ const EarnCredits = () => {
             </Row>
           </TaskContent>
         </Task>
-        {/* <Task>
-        <TaskImg>
-          <Image src={assets.icons.icon_twitter} alt="" width={30} />
-        </TaskImg>
-        <TaskContent>
-          <TaskTitle>
-            Share Session on Twitter {"("}+5 credits{")"}
-          </TaskTitle>
-          <Row style={{ gap: ".5rem" }}>
-            <TaskBtn
-              onClick={() =>
-                openLink(
-                  `https://twitter.com/intent/tweet?text=${
-                    window.location.href
-                  }chats?chat_id=${
-                    currentSession()?.conversation_id
-                  }&title=${currentSession()?.topic?.replace(/ /g, "%20")}`
-                )
-              }
-            >
-              Share
-            </TaskBtn>
-
-            <TaskBtn
-              onClick={
-                user?.isTwitterConnected
-                  ? () => verifyTask(5, user?.referralCode)
-                  : () => toast.error("Connect your twitter account!")
-              }
-            >
-              {loading?.verifyingTwitter ? "Verifying..." : "Verify"}
-            </TaskBtn>
-          </Row>
-        </TaskContent>
-      </Task> */}
         <Task
           isCompleted={user?.isFeedbackSubmitted ? 1 : 0}
           onClick={() => {
@@ -303,7 +269,7 @@ const Tasks = styled(Column)`
 `;
 const Task = styled(Row)<{ isCompleted?: number }>`
   gap: 0.5rem;
-  background: #19161d;
+  background: ${(props) => props.theme.bgTasks};
   border-radius: 8px;
   padding: 0.5rem;
   opacity: ${(props) => (props.isCompleted === 1 ? 0.5 : 1)};
@@ -323,7 +289,7 @@ const TaskBtn = styled(Button)`
   background: none;
   padding: 0;
   font-size: 0.9rem;
-  color: #8342f2;
+  color: ${(props) => props.theme.imp};
   outline: none;
   user-select: none;
 `;
@@ -331,22 +297,11 @@ const TaskImg = styled(Column)`
   width: 40px;
   height: 40px;
   padding: 0.5rem;
-  background: rgba(169, 118, 255, 0.5);
-  border: 1px solid #a976ff;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
 `;
 
-const CreditBtn = styled(Button)`
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-family: var(--ff-light);
-  border-radius: 0.5rem;
-  font-size: clamp(0.8rem, 1vw, 0.9rem);
-  padding: 0.35rem 0.5rem;
-  width: 100%;
-`;
 const EarnCreditsWrapper = styled(Column)`
   gap: 0.5rem;
 `;

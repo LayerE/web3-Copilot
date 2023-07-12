@@ -291,7 +291,7 @@ const AbortBtn = styled.div`
   padding: 0.5rem 0.75rem;
   background: linear-gradient(0deg, #121212, #121212), #160c27;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0px 0px 24px rgba(92, 45, 167, 0.45), 0px 3px 0px #000000;
+  box-shadow: 0px 0px 24px rgba(255, 78, 78, 0.3), 0px 3px 0px #000000;
   font-size: 0.8rem;
   gap: 0.5rem;
   border-radius: 2rem;
