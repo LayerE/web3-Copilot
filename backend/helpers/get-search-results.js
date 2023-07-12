@@ -5,6 +5,7 @@ import {
   mediumWikiScraper,
   polygonBlogScrapper,
   polygonIdScrapper,
+  getSiteData,
 } from "./index.js";
 import TurndownService from "turndown";
 import { encoding_for_model } from "@dqbd/tiktoken";
@@ -30,11 +31,10 @@ export default async function (q) {
   console.log("Searching for", q);
   try {
     let response = await fetch(
-      `https://www.googleapis.com/customsearch/v1/siterestrict?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CSE_KEY}&q=${q}&safe=active`
+      `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=327e0b430270b4c46&q=${q}&num=10`
     );
 
     response = await response.json();
-    console.log("Google search response", response?.items?.length);
 
     // temp fix for polygon 2.0 wiki not being indexed by google
     let regex = /polygon\s2\.0|polygon\s2|polygon2\.0|polygon2/i;
@@ -109,27 +109,27 @@ export default async function (q) {
                 $ = polygonIdScrapper($);
               }
 
-              $.find(
-                "img, video, iframe, audio, source, figure, figcaption, noscript"
-              ).remove();
+              // $.find(
+              //   "img, video, iframe, audio, source, figure, figcaption, noscript"
+              // ).remove();
 
-              markdown = turndownService.turndown($.html());
-              console.log("Scraping site data");
+              // markdown = turndownService.turndown($.html());
+            
 
               console.log("Scraping site data");
               const siteData = await getSiteData(link);
               markdown = siteData;
               console.log("Scraping site data done", siteData?.length);
 
-              try {
-                await redisClient.set(link, markdown, {
-                  EX: 60 * 60 * 24,
-                });
-                console.log(`Cached ${link} for 24 hours`);
-              } catch (e) {
-                console.log(e);
-                console.log("Caching scraped data failed.");
-              }
+              // try {
+              //   await redisClient.set(link, markdown, {
+              //     EX: 60 * 60 * 24,
+              //   });
+              //   console.log(`Cached ${link} for 24 hours`);
+              // } catch (e) {
+              //   console.log(e);
+              //   console.log("Caching scraped data failed.");
+              // }
             }
 
             // const markdown = $.text(); // Reduces Token noticeably. But not good for formatting & Removes links.

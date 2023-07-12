@@ -15,42 +15,28 @@ export async function getNFTRoute(message, walletAddress, apiKey) {
       - You can only use the API routes provided in the data section.
       - You must return only the route, not the whole URL. Add appropriate parameters to the route if needed (e.g. /topCollection?duration=3&limit=25, /collection/y00ts, /wallet/insights/0x4a935d54133705ac265eba21a2cA20D520E8c438?type=balance).
       - If a route is not suitable for the query, you must return "false" without explanation.
-    
       Routes:
       - /wallet/insights/{walletAddressOrENS}?type={balance or transactions or nfts}
         Summary: For wallet-level data containing balance (total worth), recent transactions, and NFTs owned by the wallet. Replace {walletAddress or ens} with the wallet address or ENS name. Use ${walletAddress} if walletAddress/ENS is not available
         params: {walletAddressOrENS} (wallet address or ENS name, use ${walletAddress} if walletAddress/ENS is not available in the message data)
         query: {type} (balance, transactions, nfts)
-      - /collection/{collectionName}?sortBy={sortBy}&type={type}
+      - /collection/{collectionName}?chain=eth&sortBy={sortBy}&type={type}
         Summary: For collection-level data and last 7 days of specific collection volume. Replace {collectionName} with the collection name or contract address. Contains floor, sales, sales count, volume, price, listing data, and top sales and nft listings of specific collection.
-        parameter: {collectionName} (collection name or contract address) {sortBy} (sort by asc or desc for the token price) {type} (general or sales or listings or volume)
+        parameter: {collectionName} (collection name or contract address) {sortBy} (sort by asc or desc for the token price) {type} (general or sales or listings or volume) chain is default to eth do not change it.
       - /defi?type={type} 
         Summary: For DeFi-related data such as TVL, chain TVL, dexs volume,yield pools and gas price. Replace {type} with 'chainTVL','tvl','dexVolume','yieldPools' or 'gasPrice' based on the query.
         query params: type (chainTVL, tvl, dexVolume,yieldPools,gasPrice)
-      - /topCollection?duration={duration}&limit={limit}&sortBy={sortBy}
-          Summary: Get top NFT collections by various metrics set default duration to 3 and limit to 5 
-          query params: duration, limit, sortBy, category. Duration: 1-1hr, 2-6hr, 3-12hrs, 4-1 day, 5-1 week, 6-1 month. Limit: Maximum number of collections to return (max: 25). SortBy: Options: volume_usd, sales, sales_count. Category: Default is "All". Other options include "PFP", "Brands", "Gaming", "Utility", "Art".
-      - /topCollectionBySales?duration={duration}
-          Summary: Get top NFT collections by sales (1 day, 7 days)
-          query params: duration (Duration for which to retrieve data. 0 - 1 day, 1 - 7 days)
-      - /topCollectionByVolume?duration={duration}
-          Summary: Get top NFT collections by volume (1 day, 7 days)
-          query params: duration (Duration for which to retrieve data. 0 - 1 day, 1 - 7 days)
-      - /topCollectionByTrend?duration={duration}
-          Summary: Get top NFT collections that is trending or popular based on sales count (1 day, 7 days)
-          query params: duration (Duration for which to retrieve data. 0 - 1 day, 1 - 7 days)
+      - /topCollectionCrosschain?chain={chain}
+        Summary: Get top NFT for Ethereum, Polygon, BSC, Solana, and Tezos
+        query params: chain (rest, polygon, bnb, arbitrum, optimism, avax, cronos, platon, moonbeam, fantom, gnosis) - rest is for ethereum
+      - /topCollectionBySales?duration={duration}&limit={limit} - Only for Polygon
+        Summary: Get top NFT collections by sales (1 day, 7 days)
+        query params: duration (Duration for which to retrieve data. 0 - 1 day, 1 - 7 days)
+      - /eth/sales - Only for Ethereum
+         Summary: Get last 1 or 7 days of Ethereum sales
+         query params: duration (Duration for which to retrieve data. 0 - 1 day, 1 - 7 days)
       - /marketOverview/mean
           Summary: Get Polygon/Matic Price (contains mean,median,current price,24hr change in USD and %)
-      - /marketOverview/uniqueNFTOwners
-          Summary: Get Number of unique NFT owners on Polygon/Matic
-      - /marketOverview/dailynewwallets
-          Summary: Get Number of new wallets created on Polygon/Matic daily
-      - /marketOverview/totalNFTSalesVolume
-          Summary: Get Total NFT Sales Volume on Polygon/Matic (Cummalative Volume)
-      - /marketOverview/totalNFTCollections
-          Summary: Get Total NFT Collections count on Polygon/Matic
-      - /marketOverview/totalNFTMarketCap
-          Summary: Get Total NFT Market Cap on Polygon/Matic
       if it matches for more than one route then return the route in an array.
       ex: if the message is "what is the price of matic and gas price" then return ["/marketOverview/mean","/defi?type=gasPrice"] in JSON format.
       Please only return the route. If the prompt asks for a format such as markdown or a simple string, ignore it. You are only meant to provide the information, not the formatting.

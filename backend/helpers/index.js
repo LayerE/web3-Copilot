@@ -35,6 +35,8 @@ import { decrementTokens } from "./handlers/decrementTokens.js";
 import { recordAnalyticsAndWriteConversation } from "./handlers/recordAnalytics.js";
 
 import getAlgoliaGptResponse from "./get-algolia-gpt-response.js";
+import agentAnalyze from "./prompts/agent-analyze.js";
+import agentStart from "./prompts/agent-start.js";
 
 export {
   polygonWikiParser,
@@ -70,4 +72,6 @@ export {
   recordAnalyticsAndWriteConversation,
   getAlgoliaGptResponse,
   getSiteData,
+  agentAnalyze,
+  agentStart,
 };

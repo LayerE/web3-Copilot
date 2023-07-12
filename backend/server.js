@@ -8,6 +8,11 @@ import {
   compileSolc,
   getAlgoliaGptResponse,
   createQuery,
+  getSiteData,
+  getSearchResults,
+  agentAnalyze,
+  agentStart,
+  getDataExplain,
 } from "./helpers/index.js";
 
 import parseForm from "./middleware/parseForm.js";
@@ -39,6 +44,8 @@ import {
   TotalChatSessions,
   UpdateMintAndContractDeployment,
   TokenBased,
+  AgentAnalyze,
+  AgentTasks,
 } from "./controller/index.js";
 
 import { connectDB } from "./config/database.js";
@@ -161,6 +168,20 @@ app.post("/api-key/check", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+app.post("/agent/task", AgentTasks);
+app.post("/agent/analyze", AgentAnalyze);
+app.post("/sitedata", async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    const text = await getSiteData(url);
+    return res.status(200).json({ text });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 app.post("/compile", async (req, res) => {
   try {
     let { source } = req.body;
