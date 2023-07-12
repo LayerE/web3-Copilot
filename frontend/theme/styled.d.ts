@@ -16,6 +16,8 @@ export interface Colors {
   bgSidebar: Color;
   promptContentBG: Color;
   promptQuesBG: Color;
+  bgModal: Color;
+  bgTasks: Color;
 
   // Buttons
   btnPrimary: Color;
@@ -29,6 +31,7 @@ export interface Colors {
   blue: Color;
   blue100: Color;
   stroke: Color;
+  imp: Color;
 }
 
 declare module "styled-components" {

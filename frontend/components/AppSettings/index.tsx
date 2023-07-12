@@ -2,12 +2,9 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import Row from "../common/Row";
 import Column from "../common/Column";
-import { Settings } from "react-feather";
 import Backdrop from "../Modal/Backdrop";
 import Modal from "../Modal";
 import { useAppState } from "@/context/app.context";
-import Image from "next/image";
-import assets from "@/public/assets";
 import UserAPI from "../Modal/APIModal";
 import ConnectSocials from "../Modal/ConnectSocials";
 import EarnCredits from "../Modal/EarnCredits";
@@ -47,20 +44,11 @@ const AppSettings = () => {
       <Modal
         close={() => close("showAppSettings")}
         _class="tour_settings"
-        _height="550px"
+        _height="540px"
+        title="Settings"
       >
         <AppSettingsWrapper>
           <SettingsHeader>
-            <Row
-              style={{
-                gap: ".5rem",
-                justifyContent: "flex-start",
-                width: "100%",
-              }}
-            >
-              <Image src={assets.icons.icon_settings} width={25} alt="" />
-              <span style={{ fontSize: "var(--fs-m)" }}>Settings</span>
-            </Row>
             <SettingsNav>
               {TAB_DATA?.map((tab) => (
                 <Tab
@@ -90,7 +78,6 @@ const AppSettingsWrapper = styled(Column)`
   --stroke: #67666e;
   width: 100%;
   gap: 1rem;
-  padding-bottom: 2rem;
 `;
 const SettingsNav = styled(Row)`
   gap: 1.5rem;
@@ -101,8 +88,21 @@ const Tab = styled.button<{ isActive?: boolean }>`
   background: none;
   outline: none;
   border: none;
+  position: relative;
+  transition: all 0.4s ease;
   color: ${(props) =>
     props?.isActive ? "var(--active-color)" : "var(--disabled-color)"};
+  &::after {
+    content: "";
+    transition: width 0.2s ease;
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: ${(props) => (props?.isActive ? "100%" : 0)};
+    padding: ${(props) => (props?.isActive ? "1px" : 0)};
+    background: ${(props) =>
+      props?.isActive ? "var(--active-color)" : "var(--disabled-color)"};
+  }
 `;
 const SettingsHeader = styled(Column)`
   gap: 1rem;

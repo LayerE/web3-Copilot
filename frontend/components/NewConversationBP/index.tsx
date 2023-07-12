@@ -12,6 +12,8 @@ import Tippy from "@tippyjs/react";
 import { useTour } from "@reactour/tour";
 import { theme } from "@/theme";
 import Header from "../Header";
+import Button from "../common/Button";
+import { DisabledLabel } from "../common/Label";
 
 const examplePromptsData = {
   dev: {
@@ -151,12 +153,13 @@ const NewConversationBP = () => {
             <AppTitle>
               <span>Collectible Relationship Management</span>
             </AppTitle>
-            <span>
-              Your Web3 Assistant for all your Collectible Relationship
-            </span>
+            <DisabledLabel>
+              Wormhole theme, Excess blue and black, visible sidebar, improper
+              point system.
+            </DisabledLabel>
           </Column>
         </ResponsiveRow>
-        <PersonasWrapper ref={node} className="tour_personas">
+        {/* <PersonasWrapper ref={node} className="tour_personas">
           {Personas?.map((persona, idx) => (
             <Tippy
               key={idx}
@@ -178,7 +181,7 @@ const NewConversationBP = () => {
               </Persona>
             </Tippy>
           ))}
-        </PersonasWrapper>
+        </PersonasWrapper> */}
         <PromptExamples minWidth={270} className="tour_prompting">
           {
             //@ts-ignore
@@ -191,10 +194,9 @@ const NewConversationBP = () => {
                 onClick={() => setPrompt(_prompt.txt, `/${_prompt.type}`)}
               >
                 <p className="_prompt_description">{_prompt.txt}</p>
-                <p className="_prompt_title">
-                  {_prompt.type !== "learn" && `/${_prompt.type}`}
+                <Button className="_prompt_btn">
                   <ArrowRight size={".8rem"} />
-                </p>
+                </Button>
               </PromptCard>
             ))
           }
@@ -320,44 +322,33 @@ const PromptCard = styled(Column)`
   padding: 1rem;
   height: 100%;
   border-radius: 0.5rem;
-  background: linear-gradient(180deg, #1b181f 0%, #0e0c12 100%);
+  background: ${(props) => props.theme.bgCard};
   gap: 1rem;
-  color: #807f8b;
   font-family: var(--ff-imp-reg);
   transition: 0.2s ease;
   position: relative;
   border: 1px solid ${({ theme }) => theme.stroke};
-  padding-bottom: 2.5rem;
+  padding-bottom: 3rem;
   cursor: pointer;
   &:hover {
     background: ${({ theme }) => theme.bgBody};
     color: #fff;
   }
-  ._prompt_title {
+  ._prompt_btn {
     position: absolute;
-    bottom: 5px;
-    right: 5px;
+    bottom: 10px;
+    left: 10px;
     display: flex;
     align-items: center;
     font-size: 0.8rem;
     gap: 0.5rem;
     color: #fff;
     font-family: var(--ff-subtitle);
-    width: fit-content;
-    max-width: 100%;
+    width: 25px;
+    height: 25px;
     overflow: hidden;
     padding: 0.15rem 0.35rem;
-    border-radius: 0.25rem;
-    background: ${(props) => props.theme.btnPrimary};
-    box-shadow: 0px 4px 2px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    cursor: pointer;
-    span {
-      max-width: 85%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    border-radius: 100%;
   }
   ${({ theme }) => theme.mediaWidth.upToMedium`
   height:auto;

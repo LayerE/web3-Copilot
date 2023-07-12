@@ -128,7 +128,7 @@ const UserAPI = () => {
             </span>
           </DisabledLabel>
         </APIForm>{" "}
-        {!api_key ? (
+        {api_key ? (
           <ModalBtn
             style={{
               width: "100%",
@@ -164,19 +164,17 @@ const UserAPI = () => {
   );
 };
 const SubmitBtn = styled.button`
-  background: linear-gradient(270deg, #0a090d 58.12%, rgba(10, 9, 13, 0) 100%);
+  background: ${(props) => props.theme.btnPrimary};
   color: #fff;
   border: none;
   outline: none;
   user-select: none;
   width: fit-content;
   font-size: 0.9rem;
-  padding: 0.5rem;
-  text-align: right;
-  padding-left: 1rem;
+  padding: 0.55rem;
+  border-radius: 0.5rem;
   span {
     width: 100%;
-    padding-left: 0.5rem;
   }
 `;
 
@@ -187,13 +185,14 @@ const APIForm = styled.form`
   width: 100%;
 `;
 const InputWrapper = styled(Row)`
-  border: 1px solid #535353;
   border-radius: 0.5rem;
   overflow: hidden;
+  gap:.5rem;
   input {
     width: 100%;
     padding: 0.5rem;
-    border: 0;
+    border: 1px solid #535353;
+    border-radius: 0.5rem;
     background: transparent;
     color: ${({ theme }) => theme.primary};
   }
@@ -233,11 +232,11 @@ const Swtich = styled.label`
     }
   }
   input:checked + .slider {
-    background-color: #5c2da7;
+    background-color: ${(props) => props.theme.btnPrimary};
   }
 
   input:focus + .slider {
-    box-shadow: 0 0 1px #5c2da7;
+    box-shadow: 0 0 1px ${(props) => props.theme.btnPrimary};
   }
   input:checked + .slider:before {
     -webkit-transform: translateX(17px);

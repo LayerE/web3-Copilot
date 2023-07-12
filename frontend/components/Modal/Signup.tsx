@@ -7,8 +7,8 @@ import { useAppState } from "@/context/app.context";
 import { ConnectWalletButton } from "../ConnectWalletBtn";
 import assets from "@/public/assets";
 import Image from "next/image";
-import { TEXT } from "@/theme/texts";
 import { useState } from "react";
+import { colors } from "@/theme/colors";
 
 const Signup = () => {
   const { close, open } = useAppState();
@@ -23,31 +23,26 @@ const Signup = () => {
       updateSiteAccessStatus(false);
     }
   };
-  console.log("is checked", isChecked);
+
   return (
     <Backdrop onClick={() => close("signUpModal")}>
-      <Modal close={() => close("signUpModal")}>
+      <Modal close={() => close("signUpModal")} title="Signup">
         <SignupWrapper>
-          <div
-            id={"signup-modal"}
-            style={{
-              borderRadius: ".5rem",
-            }}
-          >
-            <Image src={assets.icons.icon_wallet} alt="" width={50} />
+          <div id={"signup-modal"}>
+            <Image
+              src={assets.logos.logo_signup}
+              alt=""
+              width={100}
+              style={{
+                borderRadius: "2rem",
+                boxShadow:
+                  "0px 1.344814658164978px 11.430925369262695px 0px rgba(255, 255, 255, 0.25) inset, 0px 4px 84px 0px rgba(85, 82, 102, 0.40)",
+              }}
+            />
           </div>
-          <TEXT.Body size="var(--fs-m)">Sign Up</TEXT.Body>
-          <TEXT.Disabled size=".9rem">
-            Connect your wallet to use Polygon Copilot
-          </TEXT.Disabled>
           <ConnectWalletButton
-            bg={
-              hasSiteAccess
-                ? "radial-gradient(100% 100% at 50% 0%, #9659FF 0%, #5A2EA8 99.95%)"
-                : "#333333"
-            }
+            bg={hasSiteAccess ? colors()?.btnPrimary : "#333333"}
           />
-
           <Terms>
             <Checkbox>
               <input
@@ -88,6 +83,7 @@ const Signup = () => {
 const Checkbox = styled.label`
   --size: 1rem;
   --border: 1.5px;
+
   position: relative;
   input[type="checkbox"] {
     appearance: none;
@@ -105,9 +101,8 @@ const Checkbox = styled.label`
   }
 
   input:checked + ._checkmark {
-    background: #9659ff;
-    border: var(--border) solid #5a2ea8;
-    /* box-shadow: 0px 0px 20px 7px #5a2ea8; */
+    background: ${(props) => props.theme.btnPrimary};
+    border: var(--border) solid #fff;
   }
 `;
 
@@ -133,7 +128,7 @@ const Terms = styled.p`
   padding: 0.5rem;
   border-radius: 0.5rem;
   a {
-    color: #9659ff;
+    color: rgba(255, 78, 78, 1);
   }
   input {
     margin-right: 0.25rem;
