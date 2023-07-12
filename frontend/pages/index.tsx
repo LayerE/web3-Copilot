@@ -28,7 +28,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ExternalLink, RefreshCcw, XCircle } from "react-feather";
 import styled from "styled-components";
 import { useAccount } from "wagmi";
-
+import Header from "@/components/Header";
 const Results = () => {
   const {
     currentSession,
@@ -169,7 +169,7 @@ const Results = () => {
     >
       <Sidebar onChangeTab={() => handleTabChange(chatWindowRef)} />
       <ChatWindowWrapper ref={chatWrapperRef}>
-        {" "}
+        <Header />
         {session?.prompts?.length === 0 ? (
           <NewConversationBP />
         ) : (
@@ -248,7 +248,7 @@ const Results = () => {
                 </AbortBtns>
               )}{" "}
             </ChatWindow>
-            {currentPrompt?.streaming && !currentPrompt?.content && <Loader />}
+            {/* {currentPrompt?.streaming && !currentPrompt?.content && <Loader />} */}
           </ChatWindowInnerWrapper>
         )}{" "}
         <HideMedium>
@@ -331,8 +331,13 @@ const SearchbarWrapper = styled.div`
   width: 100%;
   margin: 0 auto;
   display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 0;
+  background: #0e0f11;
+
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    position:absolute;
+
+    position:absolute;  border-top: 1px solid rgba(255, 255, 255, 0.1);
     bottom:0;
     left:0;
   `}
@@ -365,6 +370,7 @@ const ChatWindowInnerWrapper = styled.div`
   overflow: hidden;
   flex: 1;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 3rem;
   ${({ theme }) => theme.mediaWidth.upToMedium`
     border-radius:0;
     border:0;  

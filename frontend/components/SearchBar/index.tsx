@@ -309,7 +309,7 @@ const SearchBar = ({
       if (sessions[0]?.prompts?.length > 0) {
         newSession();
       } else {
-        selectSession(0);
+        selectSession(sessions[0].id);
       }
     } else if (event.key === "Escape") {
       //@ts-ignore
@@ -512,14 +512,12 @@ const SearchBar = ({
                 : false
             }
           >
-            <div>
-              <Image
-                src={assets.icons.icon_send}
-                alt=""
-                width={15}
-                style={{ minWidth: "1rem" }}
-              />{" "}
-            </div>
+            <Image
+              src={assets.icons.icon_send}
+              alt=""
+              width={25}
+              style={{ minWidth: "1.5rem" }}
+            />{" "}
           </SearchBtn>
         </InputWrapper>{" "}
         {(tagClicked || (input.length === 1 && input === "/")) &&
@@ -564,26 +562,23 @@ const SearchBar = ({
 
 const SearchBtn = styled(Button)`
   display: flex;
-  padding: 16px;
   justify-content: center;
   align-items: center;
-  gap: 8px;
   border-radius: 12px;
   background: #722424;
-
+  flex-grow: 1;
+  max-height: 55px;
   /* Shadow/xs */
   box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
 `;
 const SearchBarCtr = styled.div`
   border-radius: 1rem;
   z-index: 10;
-  background: rgba(97, 97, 97, 0.15);
-  box-shadow: inset 0px 9px 8px rgba(0, 0, 0, 0.52);
 `;
 const MultiLineInput = styled.textarea`
   border-radius: 19px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(58, 58, 58, 0.15);
+  background: ${({ theme }) => theme.bgBody};
   box-shadow: 0px 9px 8px 0px rgba(0, 0, 0, 0.25) inset;
   width: 100%;
   padding: 1rem;
@@ -620,19 +615,18 @@ const CMD = styled.span`
 const Hints = styled(Column)`
   padding: 1rem;
   gap: 0.5rem;
-  border-radius: 1rem;
   background: ${({ theme }) => theme.bgBody};
 `;
 const HintsWrapper = styled(motion.div)<{ direction: string }>`
   --radius: 1rem;
   padding: 1px;
   position: absolute;
-  bottom: 65px;
+  bottom: 80px;
   left: 0;
   right: 0;
+  margin: 0 auto;
   width: 100%;
-  padding: 1.5px;
-  border-radius: 1rem;
+  padding: 1px;
   overflow: hidden;
   background: linear-gradient(
       0deg,
@@ -656,26 +650,16 @@ const InputWrapper = styled.form`
   gap: 0.5rem;
   overflow: hidden;
   overflow-y: auto;
-  align-items: center;
-  background: ${({ theme }) => theme.bgBody};
   border-radius: 1rem;
   position: relative;
 `;
 
 const SearchBarWrapper = styled.div`
   background: none;
-
   animation: animatedgradient 10s infinite linear;
-
   width: 100%;
   position: relative;
-
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.5rem;
-  @media (min-width: 768px) {
-    padding: 2rem;
-  }
-
+  padding: 1rem;
   @keyframes animatedgradient {
     0% {
       background-position: 0% 50%;

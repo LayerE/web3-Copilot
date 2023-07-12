@@ -9,32 +9,19 @@ import useIsMobView from "@/hooks/useIsMobView";
 import { useAppState } from "@/context/app.context";
 import Button from "../common/Button";
 
-const generateDate = (dateObj: Date) => {
-  var month = dateObj.getUTCMonth() + 1; //months from 1-12
-  var day = dateObj.getUTCDate();
-  return `${day}-${month}`;
-};
-
 type SessionProps = {
-  title: string;
-  id: number;
   closeMenu: () => void;
   deleteSession: () => void;
   selectSession: () => void;
   session: any;
   isActive: boolean;
-  persona: string;
-  convoID?: string;
 };
 const Session = ({
-  id,
-  title,
   deleteSession,
   selectSession,
   closeMenu,
   isActive,
   session,
-  convoID,
 }: SessionProps) => {
   const isMobView = useIsMobView();
   const { close, open, setlink } = useAppState();
@@ -50,7 +37,7 @@ const Session = ({
     >
       <Row gap=".5rem">
         <Image src={assets.icons.icon_chat} alt="" width={18} />
-        <p>{title}</p>
+        <p>{session?.topic}</p>
         {session?.isFvrt && (
           <Image src={assets.icons.icon_star} alt="star" width={18} />
         )}
@@ -59,7 +46,7 @@ const Session = ({
       <div className="_session_footer">
         <Button
           style={{ background: "none", padding: "0" }}
-          onClick={() => likeSession(id, !session?.isFvrt ?? true)}
+          onClick={() => likeSession(session?.id, !session?.isFvrt ?? true)}
         >
           {!session?.isFvrt ? (
             <Star size=".9rem" />
@@ -67,13 +54,13 @@ const Session = ({
             <Image src={assets.icons.icon_star} alt="star" width={18} />
           )}
         </Button>
-        {convoID && (
+        {session?.conversation_id && (
           <Share
             size=".9rem"
             onClick={() => {
               setlink(
                 encodeURI(
-                  `${window.location.origin}/chats?chat_id=${convoID}&title=${title}`
+                  `${window.location.origin}/chats?chat_id=${session?.conversation_id}&title=${session?.title}`
                 )
               );
               open("shareSessionModal");
