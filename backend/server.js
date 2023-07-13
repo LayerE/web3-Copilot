@@ -15,7 +15,7 @@ import {
   getDataExplain,
 } from "./helpers/index.js";
 
-import parseForm from "./middleware/parseForm.js";
+import { parseForm, bulkUploadForm } from "./middleware/parseForm.js";
 import algoliasearch from "algoliasearch";
 
 import {
@@ -46,6 +46,7 @@ import {
   TokenBased,
   AgentAnalyze,
   AgentTasks,
+  BulkGenerateMetadata,
 } from "./controller/index.js";
 
 import { connectDB } from "./config/database.js";
@@ -205,6 +206,7 @@ app.post("/compile", async (req, res) => {
 app.post("/early-access", earlyAccess);
 // to handle the metadata upload
 app.post("/metadata", parseForm, HandleMetadata);
+app.post("/metadata/bulk", bulkUploadForm, BulkGenerateMetadata);
 // Analytics
 app.post("/analytics/feedback", updateFeedback);
 app.post("/analytics/deployment/status", UpdateMintAndContractDeployment);

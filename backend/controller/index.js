@@ -18,7 +18,7 @@ import {
   TokenBased,
 } from "./analytics.js";
 import { earlyAccess, feedbackHook } from "./earlyAccess.js";
-import { HandleMetadata } from "./nftMetadata.js";
+import { HandleMetadata, BulkGenerateMetadata } from "./nftMetadata.js";
 import {
   ChatController,
   NFTStatsController,
@@ -63,4 +63,5 @@ export {
   TokenBased,
   AgentAnalyze,
   AgentTasks,
+  BulkGenerateMetadata,
 };

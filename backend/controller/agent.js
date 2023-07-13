@@ -142,9 +142,7 @@ const AgentAnalyze = async (req, res) => {
             Promise.all([[], []]).then(async ([source, suggestions]) => {
               res.write(
                 `data: ${JSON.stringify({
-                  source,
-                  suggestions,
-                  sourceCode: false,
+                  isTaskCompleted: true,
                 })}\n\n`
               );
               res.end();
