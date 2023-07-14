@@ -137,7 +137,6 @@ const AgentAnalyze = async (req, res) => {
             console.log(
               "Answer generated. Getting source links and suggestions"
             );
-            sendData({ completed: true }, res);
             console.log(answer);
             Promise.all([[], []]).then(async ([source, suggestions]) => {
               res.write(
