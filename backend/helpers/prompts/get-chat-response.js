@@ -30,10 +30,14 @@ export default async function (
       apiKey: apiKey || OPENAI_API_KEY,
     });
     const openai = new OpenAIApi(configuration);
-    const prompt = ` 
-        ${
-          type === "web" &&
-          `
+    const prompt =
+      type === "irrelevant"
+        ? ` 
+        ${`${data}
+        ${message} is irrelevant to the topic of Web3, Blockchain, or NFTs. Respond in a friendly manner without referring to the data.`}`
+        : `${
+            type === "web" &&
+            `
         You are a Web3 bot assisting developers with questions about the Web3 blockchain. You have the developer's current message, previous five messages, and the answer for the last message in markdown format. 
         You can access scraped data from Google search results, including titles, links, and relevant content in JSON format.
         current message: ${message}
@@ -45,7 +49,7 @@ export default async function (
             : `Please provide responses in a light-hearted and humorous manner, incorporating puns, jokes, witty and sarcastic remarks. Feel free to use dark humor and poke fun at the user. Be funny and silly while maintaining an engaging and entertaining tone.
         `
         }`
-        }
+          }
 
         ${
           type === "website" &&

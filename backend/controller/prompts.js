@@ -98,7 +98,7 @@ const ChatController = async (req, res) => {
       type === "personal" ||
       type === "code" ||
       type === "contract" ||
-      type === "restricted"
+      type === "irrelevant"
     ) {
       data = [message];
     } else if (type === "website") {
@@ -149,6 +149,7 @@ const ChatController = async (req, res) => {
       "dapp-radar",
       "info",
       "surfaceboard",
+      "irrelevant",
     ];
     let messageType = availableTypes.includes(type) ? type : "web";
 

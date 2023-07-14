@@ -31,7 +31,7 @@ export interface Prompt {
   fullContentLoaded?: boolean;
   noCitationsFound?: boolean;
   noSuggestionsFound?: boolean;
-  type?: "stats" | "learn" | "mint" | "faucet";
+  type?: "stats" | "learn" | "mint" | "faucet" | "tokens";
   isContractReady?: boolean;
   sourceCode?: any;
   txData?: any;
@@ -186,12 +186,12 @@ export const useChatStore = create<ChatStore>()(
               let updatedSession = { ...session };
               let tasks = res.data.tasks.map(
                 (task: string) =>
-                  ({
-                    id: nanoid(),
-                    title: task,
-                    content: null,
-                    streamingTask: false,
-                  } as Task)
+                ({
+                  id: nanoid(),
+                  title: task,
+                  content: null,
+                  streamingTask: false,
+                } as Task)
               );
               if (tasks.length > 0) {
                 let goal: Goal = {
@@ -619,11 +619,11 @@ export const useChatStore = create<ChatStore>()(
                 });
               } else {
                 data?.data?.id ||
-                data?.data?.completed ||
-                data?.data?.conversationId ||
-                data?.data?.type ||
-                data?.data?.queries ||
-                data?.data?.links
+                  data?.data?.completed ||
+                  data?.data?.conversationId ||
+                  data?.data?.type ||
+                  data?.data?.queries ||
+                  data?.data?.links
                   ? dataEvent.push("")
                   : dataEvent.push(data?.data);
                 prompt.content = dataEvent.join("");
@@ -731,12 +731,12 @@ export const useChatStore = create<ChatStore>()(
                   if (_prompt.id === prompt.id) {
                     _prompt.content =
                       get().isLoggedIn &&
-                      get().jwt !== "" &&
-                      get()?.credits <= 0
+                        get().jwt !== "" &&
+                        get()?.credits <= 0
                         ? "All credits used up! Come back tomorrow for more credits."
                         : get()?.credits <= 0
-                        ? "You have no credits left. Please Connect your wallet to get more credits."
-                        : "Error fetching response";
+                          ? "You have no credits left. Please Connect your wallet to get more credits."
+                          : "Error fetching response";
                     _prompt.streaming = false;
                   }
                   return _prompt;
@@ -749,8 +749,8 @@ export const useChatStore = create<ChatStore>()(
           get().isLoggedIn && get().jwt !== "" && get()?.credits <= 0
             ? "All credits used up! Come back tomorrow for more credits."
             : get()?.credits <= 0
-            ? "You have no credits left. Please Connect your wallet to get more credits."
-            : "Error fetching response";
+              ? "You have no credits left. Please Connect your wallet to get more credits."
+              : "Error fetching response";
           return error;
         }
       },
@@ -855,6 +855,8 @@ export const useChatStore = create<ChatStore>()(
           get().responsePrompt(prompt, "mint", get().currentSession().id);
         else if (prompt.type === "faucet")
           get().responsePrompt(prompt, "faucet", get().currentSession().id);
+        else if (prompt.type === "tokens")
+          get().responsePrompt(prompt, "tokens", get().currentSession().id);
         else get().responsePrompt(prompt, "chat", get().currentSession().id);
       },
       onRegeneratePrompt: async (promptID) => {
@@ -888,6 +890,8 @@ export const useChatStore = create<ChatStore>()(
             get().responsePrompt(prompt, "mint", get().currentSession().id);
           else if (prompt.type === "faucet")
             get().responsePrompt(prompt, "faucet", get().currentSession().id);
+          else if (prompt.type === "tokens")
+            get().responsePrompt(prompt, "tokens", get().currentSession().id);
           else get().responsePrompt(prompt, "chat", get().currentSession().id);
         }
       },
