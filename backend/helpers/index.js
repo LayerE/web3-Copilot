@@ -40,6 +40,7 @@ import agentStart from "./prompts/agent-start.js";
 import agentExplainer from "./prompts/agent-explainer.js";
 import getToken from "./token-api.js";
 import tokenStats from "./prompts/token-stats.js";
+import PotentialAirdrop from "./scraper/get-potential-airdrop.js";
 
 export {
   polygonWikiParser,
@@ -81,4 +82,5 @@ export {
   getWalletAnalytics,
   getToken,
   tokenStats,
+  PotentialAirdrop,
 };

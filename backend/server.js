@@ -13,6 +13,7 @@ import {
   agentAnalyze,
   agentStart,
   getDataExplain,
+  PotentialAirdrop,
 } from "./helpers/index.js";
 
 import { parseForm, bulkUploadForm } from "./middleware/parseForm.js";
@@ -86,6 +87,10 @@ app.post("/stats", isAuth, NFTStatsController);
 app.post("/mint", isAuth, MintNFTController);
 app.post("/tokens", isAuth, AirdropController);
 
+app.get("/airdrop", async (req, res) => {
+  const data = await PotentialAirdrop();
+  res.json(data);
+});
 //No auth added here🙂
 app.post("/conversation/id", getConversationById);
 app.post("/conversation/user", getConversationByUser);

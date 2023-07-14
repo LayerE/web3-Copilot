@@ -1,19 +1,30 @@
 import axios from "axios";
+import { PotentialAirdrop } from "./index.js";
 
 const getToken = async (type) => {
   try {
     switch (type) {
-      case "airdrop":
-        const fetchAirdrop = await axios.get(
-          "https://api.airdropking.io/airdrops/?order=value"
+      case "potential_airdrops":
+        const fetchPotentialAirdrop = await PotentialAirdrop(
+          "https://airdrops.io/speculative"
         );
-        return fetchAirdrop.data;
+        return fetchPotentialAirdrop;
+      case "latest_airdrops":
+        const fetchLatestAirdrop = await PotentialAirdrop(
+          "https://airdrops.io/latest"
+        );
+        return fetchLatestAirdrop;
+      case "hottest_airdrops":
+        const fetchHottestAirdrop = await PotentialAirdrop(
+          "https://airdrops.io/hottest"
+        );
+        return fetchHottestAirdrop;
       case "token_insights":
         const fetchToken = await axios.get(
           "https://nftsurfaceboard.up.railway.app/v1/coinmarket/price"
         );
         return fetchToken.data;
-      case "listings":
+      case "token_listings":
         const fetchListings = await axios.get(
           "https://nftsurfaceboard.up.railway.app/v1/coinmarket/listings"
         );

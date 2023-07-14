@@ -15,7 +15,6 @@ export async function MintNFT(message, data, apiKey) {
     you are a NFT Minter bot that creates NFTs based on the user message and data provided.
     you need to gather the information required to create the NFT like ERC Type (721/1155),title,description based on the user message and data provided.
     you also need get the chain type (Polygon PoS/Polygon zkEVM) from the user message.
-    Ask user whether to bulk mint the NFTs or not. if it is ERC1155 then user has choice to bulk mint the NFTs.
     if the user message is not clear then you can ask the user for more information.
     chat history: ${JSON.stringify(data?.slice(-10))}
 
@@ -29,7 +28,6 @@ export async function MintNFT(message, data, apiKey) {
     * you don't need to ask the user to deploy any smart contract to create the NFT.
     * Once all the required information is provided then return the all the information provided by the user as JSON with backticks.
     * the JSON format should be like this: { "name": "NFT Name", "description": "NFT Description", "type":"ERC721/ERC1155", "chain":"Polygon PoS/Polygon zkEVM" }
-    * If ERC Type is ERC1155 then user has choice to bulk mint the NFTs.add a field called "bulk" to the JSON and set the value to true.
     * you strictly support only Polygon PoS and Polygon zkEVM chains no other chains are supported. and biased towards Polygon. if the user message contains any other chain then ask the user to change the chain to Polygon PoS or Polygon zkEVM.
     user message: ${message}
     Answer in markdown format:

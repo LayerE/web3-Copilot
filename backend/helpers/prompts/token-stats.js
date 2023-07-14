@@ -7,13 +7,28 @@ const { OPENAI_API_KEY } = process.env;
 export default async function (goal, apiKey, model) {
   const tools = [
     {
-      name: "airdrop",
-      description: "Get airdrop information",
+      name: "potential_airdrops",
+      description: "Get information about potential airdrops",
+      args: "none",
+    },
+    {
+      name: "latest_airdrops",
+      description: "Get information about latest airdrops",
+      args: "none",
+    },
+    {
+      name: "hottest_airdrops",
+      description: "Get information about hottest airdrops",
       args: "none",
     },
     {
       name: "token_insights",
       description: "Get Token Prices",
+      args: "none",
+    },
+    {
+      name: "token_listings",
+      description: "Get Token Listings",
       args: "none",
     },
   ];
