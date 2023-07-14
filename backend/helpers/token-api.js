@@ -18,6 +18,25 @@ const getToken = async (type) => {
           "https://nftsurfaceboard.up.railway.app/v1/coinmarket/listings"
         );
         return fetchListings.data;
+      case "gas":
+        try {
+          let chains = ["eth", "polygon", "avax", "arb", "opt"];
+          let gasPrice = {};
+          for (let i = 0; i < chains.length; i++) {
+            const chain = chains[i];
+            const response = await axios.get(
+              `https://api.owlracle.info/v4/${chain}/gas?apikey=487cef405c174e2f947bbe0c17f054dc&feeinusd=true`
+            );
+            gasPrice[chain] = {
+              gasFee: response?.data?.speeds[1]?.maxFeePerGas,
+              gasFeeInUSD: response?.data?.speeds[1]?.estimatedFee,
+            };
+          }
+          return gasPrice;
+        } catch (error) {
+          console.log(error);
+          return false;
+        }
       default:
         return false;
     }
