@@ -30,6 +30,7 @@ import PersonaIcon from "../PersonaIcon";
 import { useAccount, useWalletClient, useSwitchNetwork } from "wagmi";
 import Web3 from "web3";
 import MintForm from "../MintForm";
+import BulkMintForm from "../MintForm/BulkMint";
 import Loader from "../Loader";
 
 const ReadMore = ({ text }: { text: string }) => {
@@ -409,7 +410,17 @@ const Prompt: FC<{
                       />
                     )}
                     {prompt?.isMintReady && !prompt?.txData ? (
-                      <MintForm formData={prompt?.sourceCode} prompt={prompt} />
+                      JSON?.parse(prompt?.sourceCode)?.bulk ? (
+                        <BulkMintForm
+                          formData={prompt?.sourceCode}
+                          prompt={prompt}
+                        />
+                      ) : (
+                        <MintForm
+                          formData={prompt?.sourceCode}
+                          prompt={prompt}
+                        />
+                      )
                     ) : null}
                     <div
                       style={{

@@ -154,8 +154,11 @@ function Layout({ children }: { children: React.ReactNode }) {
           name="twitter:image"
           content={`https://polygon-copliot.vercel.app/opengraph.png`}
         /> */}
-        {/* 
-        <link rel="icon" href="/favicon.ico" /> */}
+
+        <link
+          rel="icon"
+          href="https://layer-e.com/images/Layer-E_-Final-Logo-03-2.svg"
+        />
       </Head>
 
       <AnimatePresence

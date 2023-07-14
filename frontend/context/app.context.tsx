@@ -25,6 +25,7 @@ type modals = {
   banner: boolean;
   shareSessionModal: boolean;
   showAppSettings: boolean;
+  imagePreviewModal: boolean;
 };
 export type modalPropChoices =
   | "signUpModal"
@@ -38,7 +39,8 @@ export type modalPropChoices =
   | "earlyBirdForm"
   | "banner"
   | "shareSessionModal"
-  | "showAppSettings";
+  | "showAppSettings"
+  | "imagePreviewModal";
 interface ContextITFC {
   showModal: modals;
   currentCMD: string;
@@ -56,6 +58,8 @@ interface ContextITFC {
   open: (modalType: modalPropChoices) => void;
   link: string;
   setlink: (link: string) => void;
+  images: any[];
+  setImages: (images: any[]) => void;
 }
 export const AppContext = createContext<ContextITFC>({
   showModal: {
@@ -71,6 +75,7 @@ export const AppContext = createContext<ContextITFC>({
     banner: false,
     shareSessionModal: false,
     showAppSettings: false,
+    imagePreviewModal: false,
   },
   tabID: 1,
   setTabID: () => {},
@@ -87,6 +92,8 @@ export const AppContext = createContext<ContextITFC>({
   abortPrompt: () => {},
   link: "",
   setlink: () => {},
+  images: [],
+  setImages: () => {},
 });
 
 export const AppContextProvider = ({ children }: ContextProviderProps) => {
@@ -104,6 +111,7 @@ export const AppContextProvider = ({ children }: ContextProviderProps) => {
     banner: false,
     shareSessionModal: false,
     showAppSettings: false,
+    imagePreviewModal: false,
   });
   const [onboardingSteps, setOnboardingSteps] = useState([]);
   const [abortCurrentPrompt, setAbortCurrentPrompt] = useState(false);
@@ -111,6 +119,7 @@ export const AppContextProvider = ({ children }: ContextProviderProps) => {
   const [examplePrompt, setExpPrompt] = useState("");
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [link, setLink] = useState("");
+  const [images, setImages] = useState<any[]>([]);
   const _setOnboardingSteps = (steps: any) => {
     setOnboardingSteps(steps);
   };
@@ -138,16 +147,16 @@ export const AppContextProvider = ({ children }: ContextProviderProps) => {
   }, []);
   useEffect(() => {
     let stopSplash: any;
-    if(!window.localStorage.getItem('testsplashShown')){
-    if (!window.localStorage.getItem("splashShown")) {
-      window.localStorage.setItem("splashShown", "true");
-      stopSplash = window.setTimeout(() => setShowSplashScreen(false), 3000);
+    if (!window.localStorage.getItem("testsplashShown")) {
+      if (!window.localStorage.getItem("splashShown")) {
+        window.localStorage.setItem("splashShown", "true");
+        stopSplash = window.setTimeout(() => setShowSplashScreen(false), 3000);
+      } else {
+        stopSplash = window.setTimeout(() => setShowSplashScreen(false), 3000);
+      }
     } else {
-      stopSplash = window.setTimeout(() => setShowSplashScreen(false), 3000);
+      setShowSplashScreen(false);
     }
-  } else {
-    setShowSplashScreen(false);
-  }
     return () => {
       window.clearTimeout(stopSplash);
     };
@@ -171,6 +180,8 @@ export const AppContextProvider = ({ children }: ContextProviderProps) => {
         setlink,
         tabID,
         setTabID,
+        images,
+        setImages,
       }}
     >
       {children}

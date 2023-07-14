@@ -47,6 +47,7 @@ import {
   AgentAnalyze,
   AgentTasks,
   BulkGenerateMetadata,
+  AirdropController,
 } from "./controller/index.js";
 
 import { connectDB } from "./config/database.js";
@@ -83,6 +84,7 @@ app.use((err, req, res, next) => {
 app.post("/chat", isAuth, ChatController);
 app.post("/stats", isAuth, NFTStatsController);
 app.post("/mint", isAuth, MintNFTController);
+app.post("/tokens", isAuth, AirdropController);
 
 //No auth added here🙂
 app.post("/conversation/id", getConversationById);

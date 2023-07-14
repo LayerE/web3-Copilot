@@ -249,6 +249,17 @@ const SearchBar = ({
               search = search?.replace("/faucet", "");
               search = search?.trim();
               onNewPrompt({ title: search, type: "faucet" });
+            case input.startsWith("/tokens"): //@ts-ignore
+              if (window?.gtag) {
+                //@ts-ignore
+                window?.gtag("event", "tokens", {
+                  event_category: "search",
+                  event_label: "tokens",
+                });
+              }
+              search = search?.replace("/tokens", "");
+              search = search?.trim();
+              onNewPrompt({ title: search, type: "tokens" });
               break;
             default:
               //@ts-ignore
@@ -688,7 +699,7 @@ const SearchHints = [
   {
     id: 1,
     type: "/stats",
-    description: "Get Polygon stats and analytics",
+    description: "Get NFT stats and analytics",
     key: "i",
   },
   {
@@ -697,10 +708,10 @@ const SearchHints = [
     description: "Mint NFTs on Polygon and zkEVM",
     key: "m",
   },
-  // {
-  //   id: 3,
-  //   type: "/faucet",
-  //   description: "Request for testnet and mainnet tokens",
-  //   key: "f",
-  // },
+  {
+    id: 3,
+    type: "/tokens",
+    description: "Get Info about upcoming airdrops and token prices",
+    key: "t",
+  },
 ];

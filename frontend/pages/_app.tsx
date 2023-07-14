@@ -115,9 +115,9 @@ export default function App({ Component, pageProps }: AppProps) {
           "4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0",
         ]}
         themeVariables={{
-          "--w3m-background-color": "#7b3fe3",
+          "--w3m-background-color": "#1a1a1a",
           "--w3m-logo-image-url":
-            "https://assets.polygon.technology/brandAssets/polygon_logo_monochrome_white.svg",
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQPrvzbkvKS0glWQyV2o-2Lit3CLqahRW04C4Zvd1lnCw&s",
         }}
         walletImages={{
           coinbaseWallet:

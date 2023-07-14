@@ -8,6 +8,7 @@ import Referral from "@/components/Modal/Referral";
 import ShareSession from "@/components/Modal/ShareSession";
 import Signup from "@/components/Modal/Signup";
 import SiteAccessForm from "@/components/Modal/SiteAccessModal";
+import ImagePreviewModal from "@/components/Modal/ImagePreviewModal";
 import NewConversationBP from "@/components/NewConversationBP";
 import Prompt from "@/components/Prompt";
 import SearchBar from "@/components/SearchBar";
@@ -272,6 +273,7 @@ const Results = () => {
       {showModal.earlyBirdForm ? <EarlyBirdForm /> : null}
       {showModal.shareSessionModal ? <ShareSession /> : null}{" "}
       {showModal.showAppSettings ? <AppSettings /> : null}
+      {showModal.imagePreviewModal ? <ImagePreviewModal /> : null}
     </ResultsWrapper>
   );
 };
