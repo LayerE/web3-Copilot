@@ -1,3 +1,1 @@
-# Layer-E Copilot 
-
-WIP
+# Layer-E Copilot
