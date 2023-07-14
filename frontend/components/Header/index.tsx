@@ -67,7 +67,7 @@ const Header = styled.div`
   font-weight: 500;
   border: 1px solid #2f2f2f;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
-  z-index: 100;
+  z-index: 5;
   position: absolute;
   top: 0;
   width: 100%;

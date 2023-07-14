@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { nanoid } from "nanoid";
 import { models } from "@/components/GPTModelDropDown";
+import { Session } from "inspector";
 export enum SubmitKey {
   Enter = "Enter",
   CtrlEnter = "Ctrl + Enter",
@@ -13,7 +14,7 @@ export enum SubmitKey {
   MetaEnter = "Meta + Enter",
 }
 
-export const BE_URL = "https://polygon-copilot-testing.up.railway.app";
+export const BE_URL = "https://layere-copilot.up.railway.app";
 
 export interface Prompt {
   id?: number | string;
@@ -39,31 +40,51 @@ export interface Prompt {
   loader_queries?: [];
   loader_links?: [];
 }
+export type Task = {
+  id: string;
+  title: string;
+  content?: string | null;
+  streamingTask?: boolean;
+};
+export interface Goal {
+  id: number | string;
+  title: string;
+  tasks: Task[] | [];
+  streamingGoal?: boolean;
+}
 const DEFAULT_TOPIC = "New conversation";
 export type PERSONA_TYPES = "new_dev" | "dev" | "validator";
+export type SERVICE_TYPES = "copilot" | "agent_gpt";
 export interface ChatSession {
   id: string;
   conversation_id?: number | string;
   topic: string;
   prompts: Prompt[];
+  goals: Goal[];
   mintHistoryResponse?: any[];
   lastUpdate: string;
   type: PERSONA_TYPES;
+  service: SERVICE_TYPES;
   latestPromptContent?: string;
   isContractDeployment?: boolean;
   isMintReady?: boolean;
   isFvrt?: boolean;
   continuedSessionID?: any;
 }
-function createEmptySession(idx?: number): ChatSession {
+function createEmptySession(
+  idx?: number | null,
+  _service?: SERVICE_TYPES
+): ChatSession {
   const createDate = new Date().toLocaleString();
   return {
     id: nanoid(),
     topic: idx ? `${DEFAULT_TOPIC} - ${idx}` : DEFAULT_TOPIC,
     prompts: [],
+    goals: [],
     lastUpdate: createDate,
     mintHistoryResponse: [],
     type: "new_dev",
+    service: _service ?? "copilot",
     isContractDeployment: false,
     isMintReady: false,
   };
@@ -81,6 +102,8 @@ interface ChatStore {
   isLoggedIn: boolean;
   jwt: string;
   showSources: boolean;
+  addSessionGoal: (goal_title: string, session_id: string) => void;
+  responseAgentTask: (task: Task, goal: Goal) => void;
   continueSession: (conversationID: string) => void;
   likeSession: (sessionID: any, liked: boolean) => void;
   setGPTModel: (model: any) => void;
@@ -90,18 +113,18 @@ interface ChatStore {
   updateUserInfo: () => void;
   updateJWT: (jwt: string) => void;
   updateLoginStatus: (status: boolean) => void;
-  removeSession: (sessionID: string) => void;
+  removeSession: (sessionID: string, sessionType: SERVICE_TYPES) => void;
   selectSession: (sessionID: string) => void;
   onNewPrompt: (prompt: Prompt) => void;
   onRegeneratePrompt: (promptID: string) => void;
   updateCurrentSession: (updater: (session: ChatSession) => void) => void;
-  newSession: () => void;
+  newSession: (_service?: SERVICE_TYPES) => void;
   updateAPIKey: (key: string) => void;
   updateCreditCount: (count?: number) => void;
   updateCreditStatus: (status: boolean) => void;
   addMintHistory: (mintRes: any) => void;
   removeMintHistory: (index: boolean) => void;
-  currentSession: () => ChatSession;
+  currentSession: (sessionID?: string) => ChatSession;
   mintPrompt: (prompt: Prompt) => void;
   updateHideSourceStatus: (status: boolean) => void;
   responsePrompt: (prompt: Prompt, url: string, sessionID: string) => void;
@@ -134,7 +157,7 @@ export const useChatStore = create<ChatStore>()(
     // @ts-ignore
     (set, get) => ({
       gptModel: models[1],
-      sessions: [createEmptySession()],
+      sessions: [createEmptySession(), createEmptySession(null, "agent_gpt")],
       currentSessionID: null,
       api_key: "",
       credits: 1,
@@ -148,6 +171,55 @@ export const useChatStore = create<ChatStore>()(
         set({
           gptModel: model,
         });
+      },
+      addSessionGoal: async (goal_title: string, session_id: string) => {
+        try {
+          const res = await axios.post(BE_URL + "/agent/task", {
+            goal: goal_title,
+            name: nanoid(),
+          });
+          if (res.status === 200) {
+            const sessions = get().sessions;
+            let session = sessions.find((session) => session.id === session_id);
+            //if session exists
+            if (session) {
+              let updatedSession = { ...session };
+              let tasks = res.data.tasks.map(
+                (task: string) =>
+                  ({
+                    id: nanoid(),
+                    title: task,
+                    content: null,
+                    streamingTask: false,
+                  } as Task)
+              );
+              if (tasks.length > 0) {
+                let goal: Goal = {
+                  id: res.data.id,
+                  title: goal_title,
+                  tasks: tasks,
+                  streamingGoal: true,
+                };
+                updatedSession.goals.push(goal);
+                Object.assign(session, updatedSession);
+                set(() => ({ sessions }));
+                for (const task of goal.tasks) {
+                  await get().responseAgentTask(task, goal);
+                }
+                //all tasks fetched
+                console.log("all tasks fetched");
+                get().updateCurrentSession((session) => {
+                  let currentGoal = session.goals.find(
+                    (_goal) => _goal.id === goal.id
+                  );
+                  if (currentGoal) currentGoal.streamingGoal = false;
+                });
+              }
+            }
+          }
+        } catch (err) {
+          console.log("Error adding session:", err);
+        }
       },
       updateAPIKey: (key: string) => {
         set({
@@ -291,40 +363,71 @@ export const useChatStore = create<ChatStore>()(
           currentSessionID: sessionID,
         });
       },
-      removeSession(sessionID: string) {
-        console.log("delete session", sessionID);
-        set((state) => {
-          const sessions = state.sessions.filter(
-            (session) => session.id !== sessionID
-          );
-
-          if (sessions.length === 0) {
-            return {
-              sessions: [createEmptySession()],
-              currentSessionID: state.sessions[0].id ?? null,
+      currentSession(sessionID?: string) {
+        const session = get().sessions.find(
+          (session) => session.id === get().currentSessionID
+        );
+        return session ?? get().sessions[0];
+      },
+      removeSession(sessionID: string, sessionType: SERVICE_TYPES) {
+        const sessions = get().sessions.filter(
+          (session) => session.id !== sessionID
+        );
+        let updatedObj: any = {};
+        if (sessionType === "agent_gpt") {
+          if (
+            sessions.filter((session) => session.service === "agent_gpt")
+              .length === 0
+          ) {
+            const new_agent_session = createEmptySession(null, "agent_gpt");
+            updatedObj = {
+              sessions: [...sessions, new_agent_session],
+              currentSessionID: new_agent_session.id,
+            };
+          } else {
+            let lastAgentSessionIdx: number = sessions.findLastIndex(
+              (session) => session.service === "agent_gpt"
+            );
+            updatedObj = {
+              sessions,
+              currentSessionID: sessions[lastAgentSessionIdx].id,
             };
           }
-
-          return {
-            currentSessionID: state.sessions[0].id,
-            sessions,
-          };
+        } else if (sessionType === "copilot") {
+          if (
+            sessions.filter((session) => session.service === "copilot")
+              .length === 0
+          ) {
+            const new_copilot_session = createEmptySession(null, "copilot");
+            updatedObj = {
+              sessions: [...sessions, new_copilot_session],
+              currentSessionID: new_copilot_session.id,
+            };
+          } else {
+            let lastCopilotSessionIdx: number = sessions.findLastIndex(
+              (session) => session.service === "copilot"
+            );
+            updatedObj = {
+              sessions,
+              currentSessionID: sessions[lastCopilotSessionIdx].id,
+            };
+          }
+        }
+        set({
+          ...updatedObj,
         });
+        // get().selectSession(updatedObj.currentSessionID);
       },
-      newSession() {
-        const newSession = createEmptySession(get().sessions.length);
+      newSession(_service?: SERVICE_TYPES) {
+        const newSession = createEmptySession(
+          get().sessions.length,
+          _service ?? "copilot"
+        );
         set((state) => ({
           sessions: [newSession].concat(state.sessions),
           currentSessionID: newSession.id,
           mintHistoryResponse: [],
         }));
-      },
-      currentSession() {
-        const session = get().sessions.find(
-          (session) => session.id === get().currentSessionID
-        );
-
-        return session ?? get().sessions[0];
       },
       updateCurrentSession(updater) {
         const sessions = get().sessions;
@@ -648,6 +751,65 @@ export const useChatStore = create<ChatStore>()(
             : get()?.credits <= 0
             ? "You have no credits left. Please Connect your wallet to get more credits."
             : "Error fetching response";
+          return error;
+        }
+      },
+      responseAgentTask: async (task, goal) => {
+        try {
+          let dataEvent: any = [];
+          await fetchEventSource(`${BE_URL}/agent/analyze`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              goal: goal.title,
+              task: task.title,
+              name: nanoid(),
+            }),
+            openWhenHidden: true,
+            async onopen(response) {
+              if (response.status === 429) {
+                get().updateCurrentSession((session) => {
+                  let currentGoal = session.goals.find(
+                    (_goal) => _goal.id === goal.id
+                  );
+                  let currentTask = currentGoal?.tasks.find(
+                    (_task) => _task.id === task.id
+                  );
+                  if (currentTask) {
+                    currentTask.streamingTask = false;
+                    currentTask.content = "Content not available!";
+                  }
+                });
+              }
+            },
+            onmessage: (event) => {
+              const data = JSON.parse(event.data);
+
+              data?.isTaskCompleted
+                ? dataEvent.push("")
+                : dataEvent.push(data?.data);
+
+              let content = dataEvent.join("");
+              get().updateCurrentSession((session) => {
+                let currentGoal = session.goals.find(
+                  (_goal) => _goal.id === goal.id
+                );
+                let currentTask = currentGoal?.tasks.find(
+                  (_task) => _task.id === task.id
+                );
+                if (currentTask) {
+                  currentTask.streamingTask = true;
+                  if (data?.isTaskCompleted) {
+                    currentTask.streamingTask = false;
+                  }
+                  currentTask.content = content;
+                }
+              });
+            },
+          });
+        } catch (error) {
           return error;
         }
       },

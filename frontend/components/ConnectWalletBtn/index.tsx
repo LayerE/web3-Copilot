@@ -41,7 +41,7 @@ export const ConnectWalletButton = ({ bg }: { bg?: string }) => {
   const { address, isConnected } = useAccount();
   const isIPAD = useIPADScreen();
 
-  return isConnected || hasSiteAccess ? (
+  return isConnected || hasSiteAccess || true ? (
     isIPAD ? (
       <StyledButton onClick={() => openModal()} bg={bg} id="connect-wallet">
         <Image src={assets.icons.icon_wallet} alt={""} width={15} />

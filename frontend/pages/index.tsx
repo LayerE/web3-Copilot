@@ -1,34 +1,20 @@
-import AppSettings from "@/components/AppSettings";
 import GoToBottomPageBtn from "@/components/GoToBottomPage/GoToBottomPageBtn";
-import Loader from "@/components/Loader";
-import EarlyBirdForm from "@/components/Modal/EarlyBirdForm";
-import EarnCredits from "@/components/Modal/EarnCredits";
-import FeedbackFormLinks from "@/components/Modal/FeedbackForms";
-import Referral from "@/components/Modal/Referral";
-import ShareSession from "@/components/Modal/ShareSession";
-import Signup from "@/components/Modal/Signup";
-import SiteAccessForm from "@/components/Modal/SiteAccessModal";
 import NewConversationBP from "@/components/NewConversationBP";
 import Prompt from "@/components/Prompt";
 import SearchBar from "@/components/SearchBar";
-import Sidebar from "@/components/Sidebar";
-import SkeletonLoader from "@/components/SkeletonLoader";
 import Column from "@/components/common/Column";
 import { HideMedium, ShowMedium } from "@/components/common/MdQryBlock";
 import { PageWrapper } from "@/components/common/Wrappers";
 import { useAppState } from "@/context/app.context";
-import { BE_URL, useChatStore } from "@/store";
-import { theme } from "@/theme";
-import { copyToClipboard, useIPADScreen } from "@/utils/common";
+import { useChatStore } from "@/store";
+import { copyToClipboard } from "@/utils/common";
 import { fadeInPage } from "@/utils/variants";
 import { useTour } from "@reactour/tour";
-import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { ExternalLink, RefreshCcw, XCircle } from "react-feather";
 import styled from "styled-components";
-import { useAccount } from "wagmi";
-import Header from "@/components/Header";
+
 const Results = () => {
   const {
     currentSession,
@@ -51,6 +37,7 @@ const Results = () => {
   const router = useRouter();
   const [chatWindowScrollHeight, setChatWindowScrollHeight] = useState(0);
   const [chatWindowHeight, setChatWindowHeight] = useState(0);
+  console.log("current session", currentSession());
 
   const scrollToBottomWithSmoothScroll = (ref: any) => {
     ref.current.scrollTo({
@@ -67,10 +54,15 @@ const Results = () => {
   };
   const [continueSessionID, setContinueSessionID] = useState("");
   const { show_twitter_task, show_discord_task } = router.query;
-  const { isConnected } = useAccount();
   const { setIsOpen } = useTour();
-  const isMobView = useIPADScreen();
   const { query } = useRouter();
+  useEffect(() => {
+    let lastIndex = sessions.findLastIndex(
+      (session) => session.service === "copilot"
+    );
+    const latestSession = sessions[lastIndex];
+    selectSession(latestSession.id);
+  }, []);
   useEffect(() => {
     if (query) {
       setContinueSessionID(query["chatID"] as string);
@@ -82,12 +74,13 @@ const Results = () => {
       setTabID(3);
     }
   }, [credits, isLoggedIn, jwt]);
-  useEffect(() => {
-    if (!localStorage.getItem("userOnboarded")) {
-      localStorage.setItem("userOnboarded", "true");
-      setTimeout(() => setIsOpen(true), 1500);
-    }
-  }, []);
+  //DISABLED TOUR
+  // useEffect(() => {
+  //   if (!localStorage.getItem("userOnboarded")) {
+  //     localStorage.setItem("userOnboarded", "true");
+  //     setTimeout(() => setIsOpen(true), 1500);
+  //   }
+  // }, []);
   useEffect(() => {
     if (currentSession()?.prompts?.length > 0 && currentSession()?.id) {
       setCurrentPrompt(
@@ -167,9 +160,7 @@ const Results = () => {
       initial="initial"
       animate="animate"
     >
-      <Sidebar onChangeTab={() => handleTabChange(chatWindowRef)} />
       <ChatWindowWrapper ref={chatWrapperRef}>
-        <Header />
         {session?.prompts?.length === 0 ? (
           <NewConversationBP />
         ) : (
@@ -248,9 +239,8 @@ const Results = () => {
                 </AbortBtns>
               )}{" "}
             </ChatWindow>
-            {/* {currentPrompt?.streaming && !currentPrompt?.content && <Loader />} */}
           </ChatWindowInnerWrapper>
-        )}{" "}
+        )}
         <HideMedium>
           <SearchbarWrapper className="tour_search">
             <SearchBar ddDirection="up" />{" "}
@@ -262,16 +252,6 @@ const Results = () => {
           <SearchBar ddDirection="up" />{" "}
         </SearchbarWrapper>
       </ShowMedium>
-      {showModal.signUpModal && !isConnected ? <Signup /> : null}
-      {showModal.earnCreditsModal && isLoggedIn && api_key.length === 0 ? (
-        <EarnCredits />
-      ) : null}{" "}
-      {showModal.referralModal && isLoggedIn ? <Referral /> : null}
-      {showModal.feedbackForms ? <FeedbackFormLinks /> : null}
-      {showModal.siteAccessForm ? <SiteAccessForm /> : null}
-      {showModal.earlyBirdForm ? <EarlyBirdForm /> : null}
-      {showModal.shareSessionModal ? <ShareSession /> : null}{" "}
-      {showModal.showAppSettings ? <AppSettings /> : null}
     </ResultsWrapper>
   );
 };
@@ -415,7 +395,6 @@ const ResultsWrapper = styled(PageWrapper)`
   align-items: initial;
   flex-direction: row;
   margin: auto;
-
   height: 100%;
 
   ${({ theme }) => theme.mediaWidth.upToMedium`

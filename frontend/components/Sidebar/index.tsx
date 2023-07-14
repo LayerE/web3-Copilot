@@ -1,18 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styled from "styled-components";
 import Button from "../common/Button";
-import {
-  AlertTriangle,
-  Edit,
-  Menu,
-  MessageCircle,
-  MessageSquare,
-  Plus,
-  PlusCircle,
-  Star,
-  Zap,
-  X,
-} from "react-feather";
+import { AlertTriangle, Menu, Plus, Zap, X } from "react-feather";
 import Column from "../common/Column";
 import { useChatStore } from "@/store/app";
 import Session from "../Session";
@@ -28,8 +23,9 @@ import { isMacintosh } from "@/utils/common";
 import Tippy from "@tippyjs/react";
 import { useTour } from "@reactour/tour";
 import { colors } from "@/theme/colors";
+import { useRouter } from "next/router";
 
-const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
+const Sidebar = ({ onChangeTab }: { onChangeTab?: () => void }) => {
   const {
     sessions,
     newSession,
@@ -42,38 +38,58 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
     api_key,
   } = useChatStore();
   const { setIsOpen } = useTour();
+  const router = useRouter();
   const [historyNav, setHistoryNav] = useState({ recent: true, fvrts: false });
   const [showMenu, setShowMenu] = useState(false);
   const { open, setTabID } = useAppState();
   const footerRef = useRef<HTMLDivElement>(null);
   const [footerHeight, setHeight] = useState(224);
 
-  // const showSettingModalTour = () => {
-  //   setIsOpen(true);
-  // };
-  const creatNewSession = () => {
-    if (sessions[0]?.prompts?.length > 0) {
-      newSession();
+  const creatNewSession = useCallback(() => {
+    if (router.pathname === "/") {
+      let latestCopilotIndex: number = sessions.findIndex(
+        (session) => session.service === "copilot"
+      );
+      const colpilot_session = sessions[latestCopilotIndex];
+      if (colpilot_session?.prompts?.length > 0) {
+        newSession();
+      } else {
+        selectSession(sessions[latestCopilotIndex].id);
+      }
     } else {
-      selectSession(sessions[0].id);
+      let latestAgentIndex: number = sessions.findIndex(
+        (session) => session.service === "agent_gpt"
+      );
+      const agent_session = sessions[latestAgentIndex];
+      if (agent_session?.goals?.length > 0) {
+        newSession("agent_gpt");
+      } else {
+        selectSession(sessions[latestAgentIndex].id);
+      }
     }
-  };
+  }, [router.pathname, sessions.length]);
   const _sessions = useMemo(() => {
-    return sessions;
-  }, [historyNav?.fvrts, historyNav?.recent, sessions]);
+    if (router.pathname === "/agent")
+      return sessions.filter((session) => session.service === "agent_gpt");
+    return sessions.filter((session) => session.service === "copilot");
+  }, [historyNav?.fvrts, historyNav?.recent, sessions, router.pathname]);
+
   const _fvrtSessions = useMemo(() => {
-    return sessions.filter((session) => session.isFvrt);
-  }, [sessions.filter((session) => session.isFvrt).length]);
+    if (router.pathname === "/agent")
+      return sessions.filter(
+        (session) => session.isFvrt && session.service === "agent_gpt"
+      );
+    return sessions.filter(
+      (session) => session.isFvrt && session.service === "copilot"
+    );
+  }, [sessions.filter((session) => session.isFvrt).length, router.pathname]);
+
   useEffect(() => {
     if (footerRef?.current) {
       setHeight(footerRef?.current?.scrollHeight);
     }
   }, [footerRef?.current, footerHeight, isLoggedIn]);
 
-  useEffect(() => {
-    selectSession(sessions[0].id);
-  }, []);
-  console.log("current session", currentSession());
   return (
     <SidebarWrapper navheight={showMenu ? "100%" : "3.5rem"}>
       <ShowMedium>
@@ -114,9 +130,21 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
           >
             <BrandLogo hideBetaLogo={true} />
             <HideMedium style={{ width: "100%" }}>
-              <NewChatButton id="new-chat" className="tour_new_chat">
+              <NewChatButton
+                id="new-chat"
+                className="tour_new_chat"
+                onClick={
+                  router.pathname === "/"
+                    ? () => router.push("/agent")
+                    : () => router.push("/")
+                }
+              >
                 <Zap size="1.25rem" />
-                <span>Switch to AI Agent</span>
+                {router.pathname === "/" ? (
+                  <span>Switch to AI Agent</span>
+                ) : (
+                  <span>Switch to Web3 Copilot</span>
+                )}
               </NewChatButton>
             </HideMedium>
           </Column>
@@ -150,12 +178,14 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
                         key={idx}
                         isActive={session?.id === currentSession()?.id}
                         closeMenu={() => setShowMenu(false)}
-                        deleteSession={() => removeSession(session?.id)}
+                        deleteSession={() =>
+                          removeSession(session?.id, session?.service)
+                        }
                         session={session}
                         selectSession={() => {
                           selectSession(session?.id);
-                          if (currentSession().prompts.length > 0)
-                            onChangeTab();
+                          // if (currentSession().prompts.length > 0)
+                          //   onChangeTab();
                         }}
                       />
                     ))}
@@ -172,11 +202,13 @@ const Sidebar = ({ onChangeTab }: { onChangeTab: () => void }) => {
                     key={idx}
                     isActive={session?.id === currentSession()?.id}
                     closeMenu={() => setShowMenu(false)}
-                    deleteSession={() => removeSession(session?.id)}
+                    deleteSession={() =>
+                      removeSession(session?.id, session?.service)
+                    }
                     session={session}
                     selectSession={() => {
                       selectSession(session?.id);
-                      if (currentSession().prompts.length > 0) onChangeTab();
+                      // if (currentSession().prompts.length > 0) onChangeTab();
                     }}
                   />
                 ))}
@@ -379,8 +411,8 @@ const Tab = styled.button<{ isActive?: boolean }>`
 const SidebarWrapper = styled(Column)<{ navheight: string }>`
   --footer-height: 224px;
   max-width: 280px;
-  border-radius: 1rem;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  height: 100%;
   overflow: hidden;
   -webkit-overflow-scrolling: touch;
   background: #0f0f0f;
@@ -413,8 +445,6 @@ const SidebarFooter = styled.div`
 const SidebarCotent = styled(Column)`
   gap: 1rem;
   align-items: center;
-  /* height: calc(100% - var(--footer-height)); */
-  /* ${(props) => props.theme.mediaWidth.upToMedium` max-height: 70%;`} */
 `;
 
 const CreditsBtn = styled(Button)`

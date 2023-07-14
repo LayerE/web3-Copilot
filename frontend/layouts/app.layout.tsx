@@ -1,28 +1,32 @@
 "use client";
-import React, { Component, useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { BodyWrapper, HeaderWrapper } from "@/components/common/Wrappers";
 import Head from "next/head";
-import { StaticImageData } from "next/image";
 import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/router";
 import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { BE_URL, useChatStore } from "@/store";
 import Script from "next/script";
-
+import Header from "@/components/Header";
 import { useAppState } from "@/context/app.context";
 import { useAccount } from "wagmi";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import Banner from "@/components/Banner";
-import SplashScreen from "@/components/SplashScreen";
-import { GetServerSideProps } from "next";
 import { useIPADScreen } from "@/utils/common";
+import Sidebar from "@/components/Sidebar";
+import Signup from "@/components/Modal/Signup";
+import Referral from "@/components/Modal/Referral";
+import FeedbackFormLinks from "@/components/Modal/FeedbackForms";
+import SiteAccessForm from "@/components/Modal/SiteAccessModal";
+import EarlyBirdForm from "@/components/Modal/EarlyBirdForm";
+import ShareSession from "@/components/Modal/ShareSession";
+import AppSettings from "@/components/AppSettings";
+import EarnCredits from "@/components/Modal/EarnCredits";
+import AgentTaskPannel from "@/components/AgentTaskPannel";
 const LayoutFrame = styled.div`
   display: flex;
   align-items: center;
   justify-content: start;
-  flex-direction: Column;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -34,12 +38,16 @@ const LayoutFrame = styled.div`
   min-height:100%;
   `}
 `;
-
+const LayoutContentWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  position: relative;
+`;
 function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const storeLoaded = useHasHydrated();
-  const { close, open, showModal, showSplashScreen } = useAppState();
-  const isMobView = useIPADScreen();
+  const { close, open, showModal } = useAppState();
+  const { api_key, selectSession, sessions } = useChatStore();
   const { isConnected } = useAccount({
     onConnect({ address, connector, isReconnected }) {
       callLogin(address);
@@ -162,10 +170,28 @@ function Layout({ children }: { children: React.ReactNode }) {
         mode="wait"
         initial={router.pathname === "/" ? true : false}
       >
-        <LayoutFrame key={router.pathname}>
-          {storeLoaded && children}
-          {/* {showModal?.banner && !isMobView && <Banner />} */}
-        </LayoutFrame>
+        {storeLoaded && (
+          <LayoutFrame key={router.pathname}>
+            <Sidebar />
+            <LayoutContentWrapper>
+              <Header />
+              {children}
+            </LayoutContentWrapper>{" "}
+            {router.pathname === "/agent" && <AgentTaskPannel />}
+            {showModal.signUpModal && !isConnected ? <Signup /> : null}
+            {showModal.earnCreditsModal &&
+            isLoggedIn &&
+            api_key.length === 0 ? (
+              <EarnCredits />
+            ) : null}{" "}
+            {showModal.referralModal && isLoggedIn ? <Referral /> : null}
+            {showModal.feedbackForms ? <FeedbackFormLinks /> : null}
+            {showModal.siteAccessForm ? <SiteAccessForm /> : null}
+            {showModal.earlyBirdForm ? <EarlyBirdForm /> : null}
+            {showModal.shareSessionModal ? <ShareSession /> : null}{" "}
+            {showModal.showAppSettings ? <AppSettings /> : null}
+          </LayoutFrame>
+        )}
       </AnimatePresence>
       <Script
         src="https://accounts.google.com/gsi/client"

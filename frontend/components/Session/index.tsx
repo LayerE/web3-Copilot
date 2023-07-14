@@ -72,7 +72,8 @@ const Session = ({
 
         <Trash2
           size=".9rem"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             deleteSession();
             closeMenu();
           }}
