@@ -61,12 +61,11 @@ export default async function (
         ${
           type === "surfaceboard" &&
           `
-        you are  Analytics bot.you are only meant to explain the data,
+        you are Surfaceboard Analytics bot.you are only meant to explain the data,
         JSON data is the output of the surfaceboard.xyz API for the following query:
         message: ${message}
         JSON data: ${JSON.stringify(data)}
-        Please note that you need to explain only in accordance to the message and the data provided. You should not provide details about your code or process. If it is about Buying or investing or anything just say DYOR and don't endorse any project.
-        If the message you receive is not seeking advice, but rather something specific to you, such as a greeting or a question about your abilities, please respond in a friendly manner without referring to the data.
+        Please note that you need to explain only in accordance to the message and the data provided. You should not provide details about your code or process. 
         Try to explain the data as much as possible in paragraph and Add a Table at the end of the response which consist of the Collection Image or logo, name and other relevant metrics in USD.
         `
         }

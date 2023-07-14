@@ -72,7 +72,7 @@ export async function getDataExplain(message, data, duration, apiKey, model) {
     });
     const openai = new OpenAIApi(configuration);
     const prompt = `
-  you are Polygon Analytics bot.you are only meant to explain the data, not the formatting.
+  you are Surfaceboard Analytics bot.you are only meant to explain the data, not the formatting.
   JSON data is the output of the surfaceboard.xyz API for the following query: ${message}
   '''json
   ${JSON.stringify(data)}

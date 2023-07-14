@@ -15,6 +15,9 @@ import {
   getDappDetails,
   decrementTokens,
   recordAnalyticsAndWriteConversation,
+  tokenStats,
+  getToken,
+  agentExplainer,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
 import restrictedKeywords from "../helpers/handlers/restrictedKeywords.js";
@@ -75,10 +78,10 @@ const ChatController = async (req, res) => {
       sendData({ id: id, conversationId }, res);
     }
 
-    // const filter = !contract
-    //   ? await getMessageType(message, history, apiKey ?? false)
-    //   : [message, "contract"];
-    const filter = [message, "web"];
+    const filter = !contract
+      ? await getMessageType(message, history, apiKey ?? false)
+      : [message, "contract"];
+
     let type = filter[1];
     const query = filter[0];
     console.log("Message type:", type);
@@ -484,4 +487,130 @@ const MintNFTController = async (req, res) => {
   }
 };
 
-export { ChatController, NFTStatsController, MintNFTController };
+const AirdropController = async (req, res) => {
+  try {
+    const {
+      message,
+      wallet,
+      history,
+      apiKey,
+      isRegenerated,
+      isFooter,
+      persona,
+    } = req.body;
+
+    if (!message || !history) {
+      return res.status(400).json({ message: "Bad request" });
+    }
+    if (message?.length > 1024)
+      return res.status(400).json({ message: "Message too long" });
+
+    // Generate a unique ID for the request to store analytics data
+    const id = uuidv4();
+    let { conversationId, model } = req.body;
+    model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo";
+
+    conversationId = conversationId || uuidv4();
+
+    let maxRetries = 5;
+    let data = await tokenStats(message, apiKey, model);
+    while (!data && maxRetries > 0) {
+      data = await tokenStats(message, apiKey, model);
+      console.log("Retrying...");
+      maxRetries--;
+    }
+
+    if (!data) {
+      return res.status(400).json({ message: "Invalid response" });
+    }
+
+    console.log(data);
+    const apiFetch = await getToken(data.tool);
+    console.log(apiFetch);
+
+    const streamData = await agentExplainer(
+      apiFetch,
+      message,
+      message,
+      history,
+      apiKey,
+      false,
+      model
+    );
+
+    if (!streamData) {
+      return res.status(400).json({ message: "Invalid response" });
+    }
+
+    if (wallet && !apiKey) {
+      await decrementTokens(wallet, model);
+    }
+
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "Transfer-Encoding": "chunked",
+    });
+    sendData({ id: id }, res);
+    let answer = "";
+
+    streamData.on("data", async (chunk) => {
+      const lines = chunk
+        .toString()
+        .split("\n")
+        .filter((line) => line.trim() !== "");
+
+      for (const line of lines) {
+        const mes = line.replace(/^data: /, "");
+
+        if (mes === "[DONE]") {
+          sendData("", res);
+          res.write(
+            `data: ${JSON.stringify({
+              source: [],
+              suggestions: [],
+              id,
+              conversationId,
+            })}\n\n`
+          );
+          res.end();
+
+          await recordAnalyticsAndWriteConversation(
+            id,
+            wallet,
+            message,
+            answer,
+            apiKey,
+            model,
+            conversationId,
+            "tokenStats",
+            isRegenerated,
+            isFooter,
+            persona
+          );
+
+          console.log("Request completed");
+        } else {
+          const parsed = JSON.parse(mes);
+          const content = parsed.choices[0].delta.content;
+
+          if (content) {
+            sendData(content, res);
+            answer += content;
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export {
+  ChatController,
+  NFTStatsController,
+  MintNFTController,
+  AirdropController,
+};

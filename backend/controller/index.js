@@ -23,6 +23,7 @@ import {
   ChatController,
   NFTStatsController,
   MintNFTController,
+  AirdropController,
 } from "./prompts.js";
 
 import {
@@ -64,4 +65,5 @@ export {
   AgentAnalyze,
   AgentTasks,
   BulkGenerateMetadata,
+  AirdropController,
 };

@@ -66,7 +66,6 @@ const readCSV = async (file) => {
       csvData.push(row);
     }
 
-    console.log(csvData);
     console.log("CSV file successfully processed");
 
     return csvData;
