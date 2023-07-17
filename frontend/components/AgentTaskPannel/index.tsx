@@ -8,10 +8,12 @@ import { Input } from "../common/Input";
 import Image from "next/image";
 import assets from "@/public/assets";
 import { DisabledLabel } from "../common/Label";
+import { useChatStore } from "@/store";
 
 const AgentTaskPannel = () => {
   const footerRef = useRef<HTMLDivElement>(null);
   const [footerHeight, setHeight] = useState(224);
+  const { currentSession } = useChatStore();
   useEffect(() => {
     if (footerRef?.current) {
       setHeight(footerRef?.current?.scrollHeight);
@@ -19,7 +21,7 @@ const AgentTaskPannel = () => {
   }, [footerRef?.current, footerHeight]);
   return (
     <AgentTaskPannelWrapper>
-      <Row gap={".25rem"} style={{ paddingBottom: "1rem" }}>
+      <Row gap={".25rem"} style={{ padding: "1rem" }}>
         <Book size={"1rem"} />
         <p>Current Tasks</p>
       </Row>
@@ -28,35 +30,92 @@ const AgentTaskPannel = () => {
           height: `calc(100% - ${footerHeight}px)`,
         }}
       >
-        <Column
-          style={{
-            padding: ".5rem",
-            alignItems: "center",
-            gap: "1rem",
-          }}
-        >
-          <Image src={assets.logos.logo_signup} alt="" width={70} />
-          <DisabledLabel style={{ textAlign: "center" }}>
-            Wormhole theme, Excess blue and black, visible sidebar, improper
-            point system, unorganized glassmorphism
-          </DisabledLabel>
-        </Column>
+        {currentSession()?.goals[currentSession()?.goals?.length - 1]?.tasks ? (
+          <TasksList>
+            {currentSession()?.goals[
+              currentSession()?.goals?.length - 1
+            ]?.tasks?.map((task) => (
+              <Task
+                key={task.id}
+                style={
+                  task?.taskFullyLoaded ? { border: "1px solid #004819" } : {}
+                }
+              >
+                <div className="_task_status">
+                  {task?.taskFullyLoaded ? (
+                    <Image src={assets.icons.icon_task_done} alt="task_done" />
+                  ) : task?.streamingTask ? (
+                    <Image
+                      src={assets.icons.icon_task_fetching}
+                      alt="task_fetching"
+                      height={12}
+                    />
+                  ) : null}
+                </div>
+                <span>{task.title}</span>
+              </Task>
+            ))}
+          </TasksList>
+        ) : (
+          <Column
+            style={{
+              padding: ".5rem",
+              alignItems: "center",
+              gap: "1rem",
+            }}
+          >
+            <Image src={assets.logos.logo_signup} alt="" width={70} />
+            <DisabledLabel style={{ textAlign: "center" }}>
+              Wormhole theme, Excess blue and black, visible sidebar, improper
+              point system, unorganized glassmorphism
+            </DisabledLabel>
+          </Column>
+        )}
       </TasksCtr>
       <TasksFooter ref={footerRef}>
         <Input
           style={{
-            background: "rgba(45, 45, 45, 0.2)",
+            background: "rgba(255, 255, 255, 0.05)",
             color: "#fff",
             height: "50px",
+            border: "none",
+            borderRadius: ".5rem",
           }}
           placeholder="Enter task..."
         />
-        <Button style={{ width: "100%" }}>Add Task</Button>
+        <Button style={{ width: "100%", gap: ".5rem", padding: ".75rem" }}>
+          <Image src={assets.icons.icon_task_add} alt="add_task" />
+          <span>Add Task</span>
+        </Button>
       </TasksFooter>
     </AgentTaskPannelWrapper>
   );
 };
 
+const Task = styled.div`
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  ._task_status {
+    min-width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.25rem;
+    border-radius: 0.25rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.09);
+  }
+`;
+const TasksList = styled(Column)`
+  height: 100%;
+  overflow: hidden;
+  overflow-y: auto;
+  gap: 1rem;
+`;
 const TasksCtr = styled.div`
   flex-grow: 1;
   display: flex;
@@ -65,15 +124,16 @@ const TasksCtr = styled.div`
   justify-content: center;
   overflow: hidden;
   overflow-y: auto;
+  padding: 1rem;
 `;
 const TasksFooter = styled(Column)`
   gap: 0.5rem;
-  padding-top: 1rem;
+  padding: 1rem;
+  border-top: 1px solid ${(props) => props.theme.stroke};
 `;
 const AgentTaskPannelWrapper = styled(Column)`
   height: 100%;
   max-width: 280px;
-  padding: 1rem;
   overflow: hidden;
   -webkit-overflow-scrolling: touch;
   background: #0f0f0f;

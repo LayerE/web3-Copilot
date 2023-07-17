@@ -249,17 +249,19 @@ const Prompt: FC<{
   return (
     <PromptWrapper>
       <PromptTitle>
-        <ReadMore text={prompt.title} />
-        {prompt?.fullContentLoaded && (
-          <span
-            className="_copyPromptBtn"
-            onClick={() => copyToClipboard(JSON.stringify(prompt?.content))}
-            style={{ marginLeft: "auto" }}
-          >
-            Copy
-            <Clipboard size={".9rem"} />
-          </span>
-        )}
+        <div className="_titleContent">
+          <ReadMore text={prompt.title} />
+          {prompt?.fullContentLoaded && (
+            <span
+              className="_copyPromptBtn"
+              onClick={() => copyToClipboard(JSON.stringify(prompt?.content))}
+              style={{ marginLeft: "auto" }}
+            >
+              Copy
+              <Clipboard size={".9rem"} />
+            </span>
+          )}
+        </div>
       </PromptTitle>
       <PromptContentWrapper>
         <PromptContent>
@@ -295,7 +297,15 @@ const Prompt: FC<{
                           />
                         </Row>
                       ) : (
-                        <Row style={{ gap: ".5rem", color: "#CBADFF" }}>
+                        <Row
+                          style={{
+                            gap: ".5rem",
+                            color: "rgba(255, 255, 255, 0.50)",
+                            borderRadius: ".5rem",
+                            border: "1px solid rgba(255, 255, 255, 0.12)",
+                            padding: ".5rem 1rem",
+                          }}
+                        >
                           <Image
                             src={assets.icons.icon_brain}
                             width={15}
@@ -647,6 +657,13 @@ const LoaderLink = styled.p`
   background: rgba(10, 9, 13, 0.1);
   box-shadow: inset 0px 0px 2px rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(32px);
+  a,
+  p {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   a {
     display: inline-block;
     padding-top: 0.5rem;
@@ -848,14 +865,18 @@ const SourceLink = styled.div`
 const PromptTitle = styled(Row)`
   padding: 1rem 0.5rem;
   gap: 0.5rem;
-  max-width: ${(props) => props.theme.ctrSizes.maxAppCtrWidth};
   font-family: var(--ff-title);
   font-size: clamp(1rem, 2vw, 1.35rem);
   border-bottom: 1px solid ${(props) => props.theme.stroke};
-  margin: 0 auto;
-  align-items: flex-start;
+  justify-content: center;
   align-items: center;
-
+  ._titleContent {
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    gap:1rem;
+    max-width: ${(props) => props.theme.ctrSizes.maxAppCtrWidth};
+  }
   ._copyPromptBtn {
     display: flex;
     align-items: center;

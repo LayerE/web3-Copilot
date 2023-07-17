@@ -45,6 +45,7 @@ export type Task = {
   title: string;
   content?: string | null;
   streamingTask?: boolean;
+  taskFullyLoaded?: boolean;
 };
 export interface Goal {
   id: number | string;
@@ -103,7 +104,12 @@ interface ChatStore {
   jwt: string;
   showSources: boolean;
   addSessionGoal: (goal_title: string, session_id: string) => void;
-  responseAgentTask: (task: Task, goal: Goal) => void;
+  responseAgentTask: (
+    task: Task,
+    goal: Goal,
+    sessionID: string,
+    prevTaskContent?: any
+  ) => void;
   continueSession: (conversationID: string) => void;
   likeSession: (sessionID: any, liked: boolean) => void;
   setGPTModel: (model: any) => void;
@@ -173,48 +179,52 @@ export const useChatStore = create<ChatStore>()(
         });
       },
       addSessionGoal: async (goal_title: string, session_id: string) => {
+        let new_goal: Goal = {
+          id: nanoid(),
+          title: goal_title,
+          tasks: [],
+          streamingGoal: true,
+        };
+        get().updateSessionData(session_id, (session) => {
+          session.goals.push(new_goal);
+        });
         try {
           const res = await axios.post(BE_URL + "/agent/task", {
             goal: goal_title,
             name: nanoid(),
           });
           if (res.status === 200) {
-            const sessions = get().sessions;
-            let session = sessions.find((session) => session.id === session_id);
-            //if session exists
-            if (session) {
-              let updatedSession = { ...session };
+            get().updateSessionData(session_id, (session) => {
+              session.topic = goal_title;
+
               let tasks = res.data.tasks.map(
                 (task: string) =>
-                ({
-                  id: nanoid(),
-                  title: task,
-                  content: null,
-                  streamingTask: false,
-                } as Task)
+                  ({
+                    id: nanoid(),
+                    title: task,
+                    content: null,
+                    streamingTask: false,
+                    taskFullyLoaded: false,
+                  } as Task)
               );
               if (tasks.length > 0) {
                 let goal: Goal = {
                   id: res.data.id,
                   title: goal_title,
                   tasks: tasks,
-                  streamingGoal: true,
+                  streamingGoal: false,
                 };
-                updatedSession.goals.push(goal);
-                Object.assign(session, updatedSession);
-                set(() => ({ sessions }));
-                for (const task of goal.tasks) {
-                  await get().responseAgentTask(task, goal);
-                }
-                //all tasks fetched
-                console.log("all tasks fetched");
-                get().updateCurrentSession((session) => {
-                  let currentGoal = session.goals.find(
-                    (_goal) => _goal.id === goal.id
-                  );
-                  if (currentGoal) currentGoal.streamingGoal = false;
-                });
+                Object.assign(new_goal, goal);
               }
+            });
+            for (let i = 0; i < new_goal.tasks.length; i++) {
+              let prevTask = i > 0 ? new_goal.tasks[i - 1] : null;
+              await get().responseAgentTask(
+                new_goal.tasks[i],
+                new_goal,
+                session_id,
+                prevTask?.content ?? null
+              );
             }
           }
         } catch (err) {
@@ -619,11 +629,11 @@ export const useChatStore = create<ChatStore>()(
                 });
               } else {
                 data?.data?.id ||
-                  data?.data?.completed ||
-                  data?.data?.conversationId ||
-                  data?.data?.type ||
-                  data?.data?.queries ||
-                  data?.data?.links
+                data?.data?.completed ||
+                data?.data?.conversationId ||
+                data?.data?.type ||
+                data?.data?.queries ||
+                data?.data?.links
                   ? dataEvent.push("")
                   : dataEvent.push(data?.data);
                 prompt.content = dataEvent.join("");
@@ -731,12 +741,12 @@ export const useChatStore = create<ChatStore>()(
                   if (_prompt.id === prompt.id) {
                     _prompt.content =
                       get().isLoggedIn &&
-                        get().jwt !== "" &&
-                        get()?.credits <= 0
+                      get().jwt !== "" &&
+                      get()?.credits <= 0
                         ? "All credits used up! Come back tomorrow for more credits."
                         : get()?.credits <= 0
-                          ? "You have no credits left. Please Connect your wallet to get more credits."
-                          : "Error fetching response";
+                        ? "You have no credits left. Please Connect your wallet to get more credits."
+                        : "Error fetching response";
                     _prompt.streaming = false;
                   }
                   return _prompt;
@@ -749,12 +759,12 @@ export const useChatStore = create<ChatStore>()(
           get().isLoggedIn && get().jwt !== "" && get()?.credits <= 0
             ? "All credits used up! Come back tomorrow for more credits."
             : get()?.credits <= 0
-              ? "You have no credits left. Please Connect your wallet to get more credits."
-              : "Error fetching response";
+            ? "You have no credits left. Please Connect your wallet to get more credits."
+            : "Error fetching response";
           return error;
         }
       },
-      responseAgentTask: async (task, goal) => {
+      responseAgentTask: async (task, goal, sessionID, prevTaskContent) => {
         try {
           let dataEvent: any = [];
           await fetchEventSource(`${BE_URL}/agent/analyze`, {
@@ -766,11 +776,12 @@ export const useChatStore = create<ChatStore>()(
               goal: goal.title,
               task: task.title,
               name: nanoid(),
+              answer: prevTaskContent,
             }),
             openWhenHidden: true,
             async onopen(response) {
               if (response.status === 429) {
-                get().updateCurrentSession((session) => {
+                get().updateSessionData(sessionID, (session) => {
                   let currentGoal = session.goals.find(
                     (_goal) => _goal.id === goal.id
                   );
@@ -800,11 +811,13 @@ export const useChatStore = create<ChatStore>()(
                   (_task) => _task.id === task.id
                 );
                 if (currentTask) {
-                  currentTask.streamingTask = true;
                   if (data?.isTaskCompleted) {
                     currentTask.streamingTask = false;
+                    currentTask.taskFullyLoaded = true;
+                  } else {
+                    currentTask.streamingTask = true;
+                    currentTask.content = content;
                   }
-                  currentTask.content = content;
                 }
               });
             },

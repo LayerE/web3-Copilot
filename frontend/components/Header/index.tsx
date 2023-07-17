@@ -14,29 +14,32 @@ const index: React.FC<indexProps> = ({}) => {
   const { currentSession } = useChatStore();
   return (
     <Header>
-      {currentSession()?.prompts.length > 0 ? (
+      {currentSession()?.prompts.length > 0 ||
+      currentSession()?.goals.length > 0 ? (
         <Row style={{ gap: ".5rem" }}>
           <p className="cs_topic">{currentSession()?.topic}</p>
-          <Button
-            style={{ padding: 0, background: "none", fontSize: ".8rem" }}
-            onClick={() => {
-              copyToClipboard(
-                encodeURI(
-                  `${window.location.origin}/chats?chat_id=${
-                    currentSession()?.conversation_id
-                  }&title=${currentSession()?.topic}`
-                ),
-                "Session link copied!"
-              );
-            }}
-          >
-            <Image
-              src={assets.icons.icon_share3}
-              alt="share-button"
-              width={15}
-            />
-            <span>Share</span>
-          </Button>
+          {currentSession().service === "copilot" && (
+            <Button
+              style={{ padding: 0, background: "none", fontSize: ".8rem" }}
+              onClick={() => {
+                copyToClipboard(
+                  encodeURI(
+                    `${window.location.origin}/chats?chat_id=${
+                      currentSession()?.conversation_id
+                    }&title=${currentSession()?.topic}`
+                  ),
+                  "Session link copied!"
+                );
+              }}
+            >
+              <Image
+                src={assets.icons.icon_share3}
+                alt="share-button"
+                width={15}
+              />
+              <span>Share</span>
+            </Button>
+          )}
         </Row>
       ) : (
         <p className="timestamp">

@@ -107,7 +107,7 @@ const Conversations = () => {
       )}
       <ContinueBtn onClick={() => router.push(`/?chatID=${query["chat_id"]}`)}>
         <PlayCircle size={15} />
-        <span>Continue this session</span>
+        <span>Continue Conversation</span>
       </ContinueBtn>
     </ConversationWrapper>
   );
@@ -133,6 +133,7 @@ const ConversationWrapper = styled(Column)`
   gap: 1rem;
   position: relative;
   flex: 1;
+  padding-bottom: 3rem;
 `;
 export const ShareBtn = styled(Button)`
   padding: 0;
@@ -141,10 +142,7 @@ export const ShareBtn = styled(Button)`
   font-size: 0.8rem;
   border: 1px solid ${(props) => props.theme.blue100};
 `;
-const ContinueBtn = styled(ShareBtn)`
-  background: linear-gradient(0deg, #121212, #121212), #160c27;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0px 0px 24px rgba(92, 45, 167, 0.45), 0px 3px 0px #000000;
+const ContinueBtn = styled(Button)`
   position: fixed;
   bottom: 1rem;
   left: 0;

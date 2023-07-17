@@ -6,6 +6,7 @@ import Row from "../common/Row";
 import MarkdownContent from "../Markdown";
 import Image from "next/image";
 import assets from "@/public/assets";
+import { TEXT } from "@/theme/texts";
 
 const ReadMore = ({ text }: { text: string }) => {
   const [isReadMore, setIsReadMore] = useState(true);
@@ -39,9 +40,33 @@ const GoalPage: FC<{
   return (
     <GoalWrapper>
       <GoalTitle>
-        <ReadMore text={goal?.title} />
+        <div className="_titleContent">
+          <ReadMore text={goal?.title} />
+        </div>
       </GoalTitle>
       <GoalContentWrapper>
+        {goal.streamingGoal ? (
+          <Row
+            style={{
+              gap: ".5rem",
+              color: "rgba(255, 255, 255, 0.50)",
+              borderRadius: " .5rem",
+              border: "1px solid rgba(255, 255, 255, 0.12)",
+              padding: ".5rem 1rem",
+            }}
+          >
+            <Image src={assets.icons.icon_brain} width={15} alt="" />
+            <span>Copilot is understanding your question . . .</span>
+          </Row>
+        ) : (
+          <GoalTasks>
+            <TEXT.SmallHeader>New tasks created:</TEXT.SmallHeader>
+            {goal.tasks.map((task) => (
+              <li key={task.id}>{task.title}</li>
+            ))}
+          </GoalTasks>
+        )}
+
         <GoalContent>
           {goal.tasks.map((task) => (
             <TaskWrapper key={task?.id}>
@@ -69,17 +94,29 @@ const GoalPage: FC<{
   );
 };
 
-const TaskWrapper = styled(Column)``;
+const TaskWrapper = styled(Column)`
+  border-radius: 0.75rem;
+  border: 1px solid #343434;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 0 auto;
+`;
 const GoalTitle = styled(Row)`
   padding: 1rem 0.5rem;
   gap: 0.5rem;
-  max-width: ${(props) => props.theme.ctrSizes.maxAppCtrWidth};
   font-family: var(--ff-title);
   font-size: clamp(1rem, 2vw, 1.35rem);
   border-bottom: 1px solid ${(props) => props.theme.stroke};
   margin: 0 auto;
   align-items: flex-start;
   align-items: center;
+
+  ._titleContent {
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    gap: 1rem;
+    max-width: ${(props) => props.theme.ctrSizes.maxAppCtrWidth};
+  }
 
   ._copyGoalBtn {
     display: flex;
@@ -93,6 +130,13 @@ const GoalTitle = styled(Row)`
     &:hover {
       color: #fff;
     }
+  }
+`;
+const GoalTasks = styled.ul`
+  padding: 0 1rem;
+  li {
+    margin-left: 1.5rem;
+    padding: 0.25rem 0;
   }
 `;
 const GoalContent = styled(Column)`
@@ -130,7 +174,7 @@ const GoalContent = styled(Column)`
 `;
 const GoalContentWrapper = styled(Column)`
   background: none;
-  padding: 1rem 0;
+  padding: 1rem;
   gap: 1rem;
   border-width: 1px solid ${({ theme }) => theme.stroke};
   position: relative;

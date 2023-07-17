@@ -35,8 +35,6 @@ const Signup = () => {
               width={100}
               style={{
                 borderRadius: "2rem",
-                boxShadow:
-                  "0px 1.344814658164978px 11.430925369262695px 0px rgba(255, 255, 255, 0.25) inset, 0px 4px 84px 0px rgba(85, 82, 102, 0.40)",
               }}
             />
           </div>

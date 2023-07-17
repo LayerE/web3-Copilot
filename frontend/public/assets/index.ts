@@ -39,6 +39,9 @@ import icon_feedback from "./icons/icon-feedback.svg";
 import icon_alert from "./icons/icon-alert.svg";
 import icon_brain from "./icons/icon-brain.svg";
 import icon_ai from "./icons/icon-ai.svg";
+import icon_task_done from "./icons/icon-task-done.svg";
+import icon_task_add from "./icons/icon-add-task.svg";
+import icon_task_fetching from "./icons/icon-task-fetching.svg";
 //logos
 import logo_layerE from "./logos/logo-layerE.svg";
 import logo_layerE_circle from "./logos/logo-layerE-circle.png";
@@ -118,6 +121,9 @@ const icons = {
   icon_ai,
   icon_credits,
   icon_send,
+  icon_task_fetching,
+  icon_task_done,
+  icon_task_add,
 };
 
 const bgs = {

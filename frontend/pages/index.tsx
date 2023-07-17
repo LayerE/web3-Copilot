@@ -54,10 +54,9 @@ const Results = () => {
   };
   const [continueSessionID, setContinueSessionID] = useState("");
   const { show_twitter_task, show_discord_task } = router.query;
-  const { setIsOpen } = useTour();
   const { query } = useRouter();
   useEffect(() => {
-    let lastIndex = sessions.findLastIndex(
+    let lastIndex = sessions.findIndex(
       (session) => session.service === "copilot"
     );
     const latestSession = sessions[lastIndex];
@@ -90,28 +89,29 @@ const Results = () => {
       setCurrentPrompt(null);
     }
   }, [currentSession()?.prompts?.length, currentSession()?.id]);
-  useEffect(() => {
-    if (
-      sessions?.filter(
-        (session) => session.conversation_id === continueSessionID
-      ).length < 1 &&
-      sessions?.filter(
-        (session) => session.continuedSessionID === continueSessionID
-      ).length < 1 &&
-      isLoggedIn &&
-      jwt &&
-      continueSessionID.length > 0
-    ) {
-      //CREATE SESSION
-      continueSession(continueSessionID);
-    } else {
-      //SESSION ALREADY EXISTS
-      const _session = sessions?.filter(
-        (session) => session.continuedSessionID === continueSessionID
-      )[0];
-      if (_session) selectSession(_session?.id);
-    }
-  }, [isLoggedIn, jwt, continueSessionID]);
+  //Problem with continue session
+  // useEffect(() => {
+  //   if (
+  //     sessions?.filter(
+  //       (session) => session.conversation_id === continueSessionID
+  //     ).length < 1 &&
+  //     sessions?.filter(
+  //       (session) => session.continuedSessionID === continueSessionID
+  //     ).length < 1 &&
+  //     isLoggedIn &&
+  //     jwt &&
+  //     continueSessionID.length > 0
+  //   ) {
+  //     //CREATE SESSION
+  //     continueSession(continueSessionID);
+  //   } else {
+  //     //SESSION ALREADY EXISTS
+  //     const _session = sessions?.find(
+  //       (session) => session.continuedSessionID === continueSessionID
+  //     );
+  //     if (_session) selectSession(_session?.id);
+  //   }
+  // }, [isLoggedIn, jwt, continueSessionID]);
   useEffect(() => {
     if (show_discord_task === "true" || show_twitter_task === "true") {
       open("showAppSettings");
@@ -354,6 +354,7 @@ const ChatWindowInnerWrapper = styled.div`
   ${({ theme }) => theme.mediaWidth.upToMedium`
     border-radius:0;
     border:0;  
+      padding-top: initial;
   `}
 `;
 const ShareBtn = styled.div`

@@ -175,7 +175,9 @@ function Layout({ children }: { children: React.ReactNode }) {
       >
         {storeLoaded && (
           <LayoutFrame key={router.pathname}>
-            <Sidebar />
+            {(router.pathname === "/agent" || router.pathname === "/") && (
+              <Sidebar />
+            )}
             <LayoutContentWrapper>
               <Header />
               {children}

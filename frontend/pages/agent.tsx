@@ -15,7 +15,7 @@ import styled from "styled-components";
 const AgentAIPage = () => {
   const { currentSession, selectSession, sessions } = useChatStore();
   useEffect(() => {
-    let lastIndex = sessions.findLastIndex(
+    let lastIndex = sessions.findIndex(
       (session) => session.service === "agent_gpt"
     );
     const latestSession = sessions[lastIndex];

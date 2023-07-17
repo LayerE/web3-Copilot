@@ -213,7 +213,7 @@ const Sidebar = ({ onChangeTab }: { onChangeTab?: () => void }) => {
                   />
                 ))}
               </>
-            ) : _sessions?.length < 1 ? (
+            ) : _fvrtSessions?.length < 1 ? (
               <p
                 style={{
                   textAlign: "center",
@@ -247,6 +247,7 @@ const Sidebar = ({ onChangeTab }: { onChangeTab?: () => void }) => {
                   gap: ".5rem",
                 }}
               >
+                <Image src={assets.logos.logo_signup} alt="" width={100}/>
                 <span>
                   Connect Wallet to <br />
                   access History
