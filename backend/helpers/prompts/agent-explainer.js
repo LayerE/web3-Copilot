@@ -8,7 +8,6 @@ const { OPENAI_API_KEY } = process.env;
 
 const encoding = encoding_for_model("gpt-4");
 
-// @dev: this needs to be refactored and cleaned up
 export default async function (
   data,
   task,
