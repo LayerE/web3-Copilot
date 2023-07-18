@@ -19,6 +19,7 @@ import {
   agentStart,
   agentExplainer,
   getWalletAnalytics,
+  writeConversations,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
 import restrictedKeywords from "../helpers/handlers/restrictedKeywords.js";
@@ -43,7 +44,8 @@ const AgentTasks = async (req, res) => {
 const AgentAnalyze = async (req, res) => {
   try {
     const { goal, task } = req.body;
-
+    let { id } = req.body;
+    if (!id) id = uuidv4();
     if (!goal || !task)
       return res.status(400).json({ message: "Invalid request" });
 
@@ -145,6 +147,7 @@ const AgentAnalyze = async (req, res) => {
                 })}\n\n`
               );
               res.end();
+              await writeConversations(id, task, answer, false);
               console.log("Request completed");
             });
           } else {
