@@ -52,6 +52,7 @@ export interface Goal {
   title: string;
   tasks: Task[] | [];
   streamingGoal?: boolean;
+  summary?: any | null;
 }
 const DEFAULT_TOPIC = "New conversation";
 export type PERSONA_TYPES = "new_dev" | "dev" | "validator";
@@ -103,13 +104,23 @@ interface ChatStore {
   isLoggedIn: boolean;
   jwt: string;
   showSources: boolean;
-  addSessionGoal: (goal_title: string, session_id: string) => void;
+  addSessionGoal: (
+    goal_title: string,
+    session_id: string,
+    agent_name?: string
+  ) => void;
+  addTaskToCurrentGoal: (
+    task_title: string,
+    goalID: string,
+    sessionID: string
+  ) => void;
   responseAgentTask: (
     task: Task,
     goal: Goal,
     sessionID: string,
     prevTaskContent?: any
   ) => void;
+  generateGoalSummary: (goal: Goal, results: any[], sessionID: string) => void;
   continueSession: (conversationID: string) => void;
   likeSession: (sessionID: any, liked: boolean) => void;
   setGPTModel: (model: any) => void;
@@ -178,12 +189,17 @@ export const useChatStore = create<ChatStore>()(
           gptModel: model,
         });
       },
-      addSessionGoal: async (goal_title: string, session_id: string) => {
+      addSessionGoal: async (
+        goal_title: string,
+        session_id: string,
+        agent_name?: string
+      ) => {
         let new_goal: Goal = {
           id: nanoid(),
           title: goal_title,
           tasks: [],
           streamingGoal: true,
+          summary: null,
         };
         get().updateSessionData(session_id, (session) => {
           session.goals.push(new_goal);
@@ -191,7 +207,7 @@ export const useChatStore = create<ChatStore>()(
         try {
           const res = await axios.post(BE_URL + "/agent/task", {
             goal: goal_title,
-            name: nanoid(),
+            name: agent_name ?? nanoid(),
           });
           if (res.status === 200) {
             get().updateSessionData(session_id, (session) => {
@@ -230,6 +246,85 @@ export const useChatStore = create<ChatStore>()(
         } catch (err) {
           console.log("Error adding session:", err);
         }
+      },
+      generateGoalSummary: async (
+        goal: Goal,
+        results: any[],
+        sessionID: string
+      ) => {
+        get().updateSessionData(sessionID, (session) => {
+          let currentGoal = session.goals.find((_goal) => _goal.id === goal.id);
+          if (currentGoal) currentGoal.streamingGoal = true;
+        });
+        try {
+          let dataEvent: any = [];
+          await fetchEventSource(`${BE_URL}/agent/summarize`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              goal: goal.title,
+              results: results,
+              name: nanoid(),
+            }),
+            openWhenHidden: true,
+            async onopen(response) {
+              if (response.status === 429) {
+                get().updateSessionData(sessionID, (session) => {
+                  let currentGoal = session.goals.find(
+                    (_goal) => _goal.id === goal.id
+                  );
+
+                  if (currentGoal) {
+                    currentGoal.streamingGoal = false;
+                    currentGoal.summary = "Summary not available!";
+                  }
+                });
+              }
+            },
+            onmessage: (event) => {
+              const data = JSON.parse(event.data);
+
+              data?.isTaskCompleted
+                ? dataEvent.push("")
+                : dataEvent.push(data?.data);
+
+              let content = dataEvent.join("");
+              get().updateCurrentSession((session) => {
+                let currentGoal = session.goals.find(
+                  (_goal) => _goal.id === goal.id
+                );
+                if (currentGoal) {
+                  if (data?.isTaskCompleted) {
+                    currentGoal.streamingGoal = false;
+                  } else {
+                    currentGoal.streamingGoal = true;
+                    currentGoal.summary = content;
+                  }
+                }
+              });
+            },
+          });
+        } catch (error) {
+          return error;
+        }
+      },
+      addTaskToCurrentGoal: async (task_title, goalID, sessionID) => {
+        let new_task: Task = {
+          id: nanoid(),
+          title: task_title,
+          content: null,
+          streamingTask: false,
+          taskFullyLoaded: false,
+        };
+        get().updateSessionData(sessionID, (session) => {
+          let update_goal = session.goals.find((goal) => goal.id === goalID);
+          if (update_goal) {
+            update_goal.tasks = [...update_goal.tasks, new_task];
+            get().responseAgentTask(new_task, update_goal, sessionID);
+          }
+        });
       },
       updateAPIKey: (key: string) => {
         set({

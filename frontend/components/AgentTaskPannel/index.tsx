@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Column from "../common/Column";
 import { Book } from "react-feather";
@@ -12,8 +12,21 @@ import { useChatStore } from "@/store";
 
 const AgentTaskPannel = () => {
   const footerRef = useRef<HTMLDivElement>(null);
+  const [taskTitle, setTaskTitle] = useState<string | null>(null);
   const [footerHeight, setHeight] = useState(224);
-  const { currentSession } = useChatStore();
+  const { currentSession, addTaskToCurrentGoal } = useChatStore();
+  const formRef = useRef<HTMLFormElement>(null);
+  const addTask = (e: ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    let sessionID = currentSession().id;
+    let goalID = currentSession().goals[currentSession().goals.length - 1].id;
+    addTaskToCurrentGoal(
+      taskTitle as string,
+      goalID as string,
+      sessionID as string
+    );
+    formRef.current?.reset();
+  };
   useEffect(() => {
     if (footerRef?.current) {
       setHeight(footerRef?.current?.scrollHeight);
@@ -34,7 +47,7 @@ const AgentTaskPannel = () => {
           <TasksList>
             {currentSession()?.goals[
               currentSession()?.goals?.length - 1
-            ]?.tasks?.map((task) => (
+            ]?.tasks?.map((task, idx) => (
               <Task
                 key={task.id}
                 style={
@@ -73,20 +86,28 @@ const AgentTaskPannel = () => {
         )}
       </TasksCtr>
       <TasksFooter ref={footerRef}>
-        <Input
-          style={{
-            background: "rgba(255, 255, 255, 0.05)",
-            color: "#fff",
-            height: "50px",
-            border: "none",
-            borderRadius: ".5rem",
-          }}
-          placeholder="Enter task..."
-        />
-        <Button style={{ width: "100%", gap: ".5rem", padding: ".75rem" }}>
-          <Image src={assets.icons.icon_task_add} alt="add_task" />
-          <span>Add Task</span>
-        </Button>
+        <form onSubmit={addTask} ref={formRef}>
+          <Input
+            style={{
+              background: "rgba(255, 255, 255, 0.05)",
+              color: "#fff",
+              height: "50px",
+              border: "none",
+              borderRadius: ".5rem",
+            }}
+            disabled={currentSession().goals.length === 0}
+            onChange={(e) => setTaskTitle(e.target.value)}
+            placeholder="Enter task..."
+            required
+          />
+          <Button
+            style={{ width: "100%", gap: ".5rem", padding: ".75rem" }}
+            disabled={currentSession().goals.length === 0}
+          >
+            <Image src={assets.icons.icon_task_add} alt="add_task" />
+            <span>Add Task</span>
+          </Button>
+        </form>
       </TasksFooter>
     </AgentTaskPannelWrapper>
   );
@@ -115,6 +136,7 @@ const TasksList = styled(Column)`
   overflow: hidden;
   overflow-y: auto;
   gap: 1rem;
+  padding: 1rem;
 `;
 const TasksCtr = styled.div`
   flex-grow: 1;
@@ -124,12 +146,17 @@ const TasksCtr = styled.div`
   justify-content: center;
   overflow: hidden;
   overflow-y: auto;
-  padding: 1rem;
 `;
 const TasksFooter = styled(Column)`
   gap: 0.5rem;
   padding: 1rem;
   border-top: 1px solid ${(props) => props.theme.stroke};
+  form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+  }
 `;
 const AgentTaskPannelWrapper = styled(Column)`
   height: 100%;

@@ -213,7 +213,7 @@ const Sidebar = ({ onChangeTab }: { onChangeTab?: () => void }) => {
                   />
                 ))}
               </>
-            ) : _fvrtSessions?.length < 1 ? (
+            ) :jwt && isLoggedIn && _fvrtSessions?.length < 1 ? (
               <p
                 style={{
                   textAlign: "center",

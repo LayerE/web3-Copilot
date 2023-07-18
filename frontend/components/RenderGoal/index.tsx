@@ -1,12 +1,14 @@
 import React, { memo, FC, useEffect, useState, ReactNode } from "react";
 import styled from "styled-components";
 import Column from "../common/Column";
-import { Goal } from "@/store";
+import { Goal, useChatStore } from "@/store";
 import Row from "../common/Row";
 import MarkdownContent from "../Markdown";
 import Image from "next/image";
 import assets from "@/public/assets";
 import { TEXT } from "@/theme/texts";
+import { goals } from "../NewAgentConversationBP";
+import Button from "../common/Button";
 
 const ReadMore = ({ text }: { text: string }) => {
   const [isReadMore, setIsReadMore] = useState(true);
@@ -37,6 +39,11 @@ const ReadmoreTxtWrapper = styled.p`
 const GoalPage: FC<{
   goal: Goal;
 }> = ({ goal }) => {
+  const { generateGoalSummary, currentSession } = useChatStore();
+  const summarizeTask = () => {
+    const allTaskContent = goal.tasks.map((task) => task.content);
+    generateGoalSummary(goal, allTaskContent, currentSession().id);
+  };
   return (
     <GoalWrapper>
       <GoalTitle>
@@ -85,9 +92,44 @@ const GoalPage: FC<{
                     isDone={task.streamingTask && task.content ? true : false}
                   />
                 )}
+                {task?.taskFullyLoaded &&
+                  task?.id === goal.tasks[goal.tasks.length - 1]?.id &&
+                  !goal?.summary && (
+                    <Button
+                      style={{
+                        width: "100%",
+                        gap: ".5rem",
+                        padding: ".5rem",
+                        marginTop: "1rem",
+                      }}
+                      onClick={summarizeTask}
+                    >
+                      <span>Summarize All Tasks</span>
+                    </Button>
+                  )}
               </div>
             </TaskWrapper>
           ))}
+          {goal?.summary && (
+            <TaskWrapper>
+              <GoalTitle>
+                <ReadMore text={"Tasks Summary"} />
+              </GoalTitle>
+              <div style={{ padding: "1rem" }}>
+                {!goal.summary ? (
+                  <Row style={{ gap: ".5rem", color: "#494949" }}>
+                    <Image src={assets.icons.icon_brain} width={15} alt="" />
+                    <span>Fetching Summary...</span>
+                  </Row>
+                ) : (
+                  <MarkdownContent
+                    content={goal.summary}
+                    isDone={goal.streamingGoal && goal.summary ? true : false}
+                  />
+                )}
+              </div>
+            </TaskWrapper>
+          )}
         </GoalContent>
       </GoalContentWrapper>
     </GoalWrapper>

@@ -1,19 +1,26 @@
 import AgentAISearchbar from "@/components/AgentAISearchbar";
+import NewAgentAI from "@/components/NewAgentConversationBP";
 import RenderGoal from "@/components/RenderGoal";
-import SearchBar from "@/components/SearchBar";
 import Column from "@/components/common/Column";
 import { HideMedium, ShowMedium } from "@/components/common/MdQryBlock";
-import Row from "@/components/common/Row";
 import { PageWrapper } from "@/components/common/Wrappers";
-import assets from "@/public/assets";
 import { useChatStore } from "@/store";
 import { fadeInPage } from "@/utils/variants";
-import Image from "next/image";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 
+const scrollToBottomWithSmoothScroll = (ref: any) => {
+  ref.current.scrollTo({
+    top: ref.current.scrollHeight,
+    behavior: "smooth",
+  });
+  // ref.current.scrollTop = ref?.current?.scrollHeight;
+};
 const AgentAIPage = () => {
   const { currentSession, selectSession, sessions } = useChatStore();
+  const chatWindowRef = useRef<HTMLDivElement>(null);
+  const chatWrapperRef = useRef<HTMLDivElement>(null);
+  const resultPageRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let lastIndex = sessions.findIndex(
       (session) => session.service === "agent_gpt"
@@ -22,26 +29,44 @@ const AgentAIPage = () => {
     selectSession(latestSession.id);
   }, []);
 
+  useEffect(() => {
+    if (chatWrapperRef.current) scrollToBottomWithSmoothScroll(chatWrapperRef);
+    if (resultPageRef.current) scrollToBottomWithSmoothScroll(resultPageRef);
+    if (chatWindowRef.current) scrollToBottomWithSmoothScroll(chatWindowRef);
+  }, [
+    currentSession()?.id,
+    currentSession()?.goals?.length,
+    chatWindowRef?.current?.scrollHeight,
+    chatWrapperRef?.current?.scrollHeight,
+    resultPageRef?.current?.scrollHeight,
+  ]);
   return (
     <AgentAIPageWrapper
       variants={fadeInPage}
       initial="initial"
       animate="animate"
+      ref={resultPageRef}
     >
-      <ChatWindowWrapper>
-        <ChatWindowInnerWrapper>
-          <ChatWindow>
-            {currentSession()?.goals?.length > 0 &&
-              currentSession()?.goals.map((goal) => (
-                <RenderGoal goal={goal} key={goal.title} />
-              ))}
-          </ChatWindow>
-        </ChatWindowInnerWrapper>
-        <HideMedium>
-          <SearchbarWrapper className="tour_search">
-            <AgentAISearchbar ddDirection="up" />{" "}
-          </SearchbarWrapper>
-        </HideMedium>
+      <ChatWindowWrapper ref={chatWrapperRef}>
+        {currentSession()?.goals?.length === 0 ? (
+          <NewAgentAI />
+        ) : (
+          <>
+            <ChatWindowInnerWrapper>
+              <ChatWindow ref={chatWindowRef}>
+                {currentSession()?.goals?.length > 0 &&
+                  currentSession()?.goals.map((goal) => (
+                    <RenderGoal goal={goal} key={goal.title} />
+                  ))}
+              </ChatWindow>
+            </ChatWindowInnerWrapper>
+            <HideMedium>
+              <SearchbarWrapper className="tour_search">
+                <AgentAISearchbar ddDirection="up" />{" "}
+              </SearchbarWrapper>
+            </HideMedium>
+          </>
+        )}
       </ChatWindowWrapper>
       <ShowMedium>
         <SearchbarWrapper className="tour_search_mob">

@@ -87,7 +87,7 @@ export function theme(): DefaultTheme {
     customScrollBar: css`
       /* width */
       ::-webkit-scrollbar {
-        width: 5px;
+        width: 7px;
       }
 
       /* Track */
@@ -100,6 +100,10 @@ export function theme(): DefaultTheme {
       ::-webkit-scrollbar-thumb {
         background: #505050;
         border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        border-radius: 8px;
       }
 
       /* Handle on hover */
@@ -260,30 +264,5 @@ a{
     }
   }
 // scroll bar
-  /* width */
-  &::-webkit-scrollbar {
-    background-color: hsl(0, 0%, 29.01960784313726%);
-    width: 8px;
-    height: 10px;
-  }
-
-  /* Track */
-  &::-webkit-scrollbar-track {
-    background-color: hsl(0, 0%, 29.01960784313726%);
-    border-radius: 0px;
-    border: 1px solid #6f6f6f;
-    border-top: 0px;
-  }
-
-  /* Handle */
-  &::-webkit-scrollbar-thumb {
-    background-color: #737373;
-    border-radius: 0px;
-  }
-
-  /* Handle on hover */
-  &::-webkit-scrollbar-thumb:hover {
-    background: #9e77ed;
-  }
-  //MARK-DOWN styles 
+  ${({ theme }) => theme.customScrollBar}
 `;

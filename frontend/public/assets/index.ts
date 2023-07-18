@@ -54,6 +54,7 @@ import logo_poweredBy_layerE from "./logos/logo-poweredBy-layerE.png";
 import logo_polygon_circle from "./logos/polygon_logo_circle.svg";
 import logo_polygon_copilot_2 from "./logos/logo-copilot-2.png";
 import logo_footer_brands from "./logos/logo-footer-brands.png";
+import logo_agentAI from "./logos/logo-agentAI.png";
 import mask_brandBtns from "./logos/mask-brandBtns.png";
 //bg
 import bg_tunnel from "./bgs/bg_tunnel.gif";
@@ -82,6 +83,7 @@ const logos = {
   mask_brandBtns,
   logo_new_copilot,
   logo_signup,
+  logo_agentAI,
 };
 const icons = {
   icon_alert,
