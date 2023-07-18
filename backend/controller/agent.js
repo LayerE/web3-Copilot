@@ -152,11 +152,15 @@ const AgentAnalyze = async (req, res) => {
               console.log("Request completed");
             });
           } else {
-            const parsed = JSON?.parse(mes);
-            const content = parsed.choices[0].delta.content;
-            if (content) {
-              sendData(content, res);
-              answer += content;
+            try {
+              const parsed = JSON?.parse(mes);
+              const content = parsed.choices[0].delta.content;
+              if (content) {
+                sendData(content, res);
+                answer += content;
+              }
+            } catch (error) {
+              console.log("Error parsing answer");
             }
           }
         }

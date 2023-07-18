@@ -57,9 +57,9 @@ export default async function (query) {
 
   try {
     data = await fetch(
-      `https://api.dappradar.com/on-demand/dapps/top/uaw?chain=polygon&top=10${
-        category !== "general" ? `&category=${category}` : ""
-      }`,
+      `https://api.dappradar.com/on-demand/dapps/top/uaw?chain=${
+        query?.includes("polygon") ? "polygon" : "ethereum"
+      }&top=10${category !== "general" ? `&category=${category}` : ""}`,
       {
         headers: {
           "X-BLOBR-KEY": "BnJhqnpIDcDb5d9PkNhJOit8cT7aiDb3",

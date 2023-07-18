@@ -41,7 +41,7 @@ export default async function (
 
     const completion = await openai.createChatCompletion(
       {
-        model: model,
+        model: "gpt-3.5-turbo-16k",
         messages: [
           {
             role: "system",
