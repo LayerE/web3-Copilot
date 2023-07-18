@@ -49,6 +49,7 @@ import {
   AgentTasks,
   BulkGenerateMetadata,
   AirdropController,
+  AgentSummarizer,
 } from "./controller/index.js";
 
 import { connectDB } from "./config/database.js";
@@ -87,10 +88,6 @@ app.post("/stats", isAuth, NFTStatsController);
 app.post("/mint", isAuth, MintNFTController);
 app.post("/tokens", isAuth, AirdropController);
 
-app.get("/airdrop", async (req, res) => {
-  const data = await PotentialAirdrop();
-  res.json(data);
-});
 //No auth added here🙂
 app.post("/conversation/id", getConversationById);
 app.post("/conversation/user", getConversationByUser);
@@ -176,19 +173,10 @@ app.post("/api-key/check", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+// agents
 app.post("/agent/task", AgentTasks);
 app.post("/agent/analyze", AgentAnalyze);
-app.post("/sitedata", async (req, res) => {
-  try {
-    const { url } = req.body;
-
-    const text = await getSiteData(url);
-    return res.status(200).json({ text });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
+app.post("/agent/summarize", AgentSummarizer);
 
 app.post("/compile", async (req, res) => {
   try {

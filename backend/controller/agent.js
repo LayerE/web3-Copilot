@@ -19,6 +19,8 @@ import {
   agentStart,
   agentExplainer,
   getWalletAnalytics,
+  writeConversations,
+  agentSummarizer,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
 import restrictedKeywords from "../helpers/handlers/restrictedKeywords.js";
@@ -43,7 +45,8 @@ const AgentTasks = async (req, res) => {
 const AgentAnalyze = async (req, res) => {
   try {
     const { goal, task } = req.body;
-
+    let { id } = req.body;
+    if (!id) id = uuidv4();
     if (!goal || !task)
       return res.status(400).json({ message: "Invalid request" });
 
@@ -145,6 +148,7 @@ const AgentAnalyze = async (req, res) => {
                 })}\n\n`
               );
               res.end();
+              await writeConversations(id, task, answer, false);
               console.log("Request completed");
             });
           } else {
@@ -164,4 +168,58 @@ const AgentAnalyze = async (req, res) => {
   }
 };
 
-export { AgentAnalyze, AgentTasks };
+const AgentSummarizer = async (req, res) => {
+  try {
+    const { goal, results } = req.body;
+    let { id } = req.body;
+    if (!id) id = uuidv4();
+    if (!goal || !results)
+      return res.status(400).json({ message: "Invalid request" });
+
+    const chat = await agentSummarizer(results, goal, false, "gpt-4");
+    if (!chat) return res.status(400).json({ message: "Invalid request" });
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "Transfer-Encoding": "chunked",
+    });
+    sendData("", res);
+    let answer = "";
+    chat.on("data", (chunk) => {
+      const lines = chunk
+        .toString()
+        .split("\n")
+        .filter((line) => line.trim() !== "");
+
+      for (const line of lines) {
+        const mes = line.replace(/^data: /, "");
+        if (mes === "[DONE]") {
+          console.log("Answer generated. Getting source links and suggestions");
+          console.log(answer);
+          Promise.all([[], []]).then(async ([source, suggestions]) => {
+            res.write(
+              `data: ${JSON.stringify({
+                isTaskCompleted: true,
+              })}\n\n`
+            );
+            res.end();
+            console.log("Request completed");
+          });
+        } else {
+          const parsed = JSON?.parse(mes);
+          const content = parsed.choices[0].delta.content;
+          if (content) {
+            sendData(content, res);
+            answer += content;
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(503).json({ message: "Something went wrong." });
+  }
+};
+
+export { AgentAnalyze, AgentTasks, AgentSummarizer };

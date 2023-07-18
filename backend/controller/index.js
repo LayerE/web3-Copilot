@@ -35,7 +35,7 @@ import {
   getConversationById,
   getConversationByUser,
 } from "./get-conversations.js";
-import { AgentAnalyze, AgentTasks } from "./agent.js";
+import { AgentAnalyze, AgentTasks, AgentSummarizer } from "./agent.js";
 export {
   TwitterLogin,
   TwitterCallback,
@@ -66,4 +66,5 @@ export {
   AgentTasks,
   BulkGenerateMetadata,
   AirdropController,
+  AgentSummarizer,
 };
