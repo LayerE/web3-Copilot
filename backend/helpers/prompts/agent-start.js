@@ -20,8 +20,8 @@ export default async function (goal, apiKey, model, message) {
     [
         "What is the top trending NFT collection?",
         "What is the floor price of the top trending NFT collection?",
-        "Write a ERC-721 contract to mint a NFT",
-        "Write a ERC-20 contract to mint a token",
+        "Research about the Ecosystem",
+        "Search for a query on Google",
     ]
     `;
 

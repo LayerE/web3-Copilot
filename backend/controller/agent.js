@@ -93,10 +93,33 @@ const AgentAnalyze = async (req, res) => {
           const nftAnalytics = await getNFTAnalytics(task);
           toolData = { type: "nft-analytics", data: nftAnalytics };
           break;
-        case "Wallet_Insights":
+        case "top_eth_collections":
+          const topEthCollections = await getNFTAnalytics(
+            ["/topCollectionCrosschain?chain=rest"],
+            false,
+            false,
+            false,
+            true
+          );
+          toolData = { type: "nft-analytics", data: topEthCollections };
+          break;
+        case "top_polygon_collections":
+          const topPolygonCollections = await getNFTAnalytics(
+            ["/topCollection?duration=3"],
+            false,
+            false,
+            false,
+            true
+          );
+          toolData = { type: "nft-analytics", data: topPolygonCollections };
+          break;
+        case "wallet_transactions":
+        case "wallet_balance":
+        case "wallet_nfts":
           const walletAnalytics = await getWalletAnalytics(
             task,
-            tasks?.args?.arg
+            tasks?.args?.arg,
+            tasks?.tool
           );
           toolData = { type: "wallet-analytics", data: walletAnalytics };
           break;

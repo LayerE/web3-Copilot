@@ -12,9 +12,18 @@ export default async function (goal, apiKey, model, task) {
       args: "query for search related to web3, crypto, nft, defi, blockchain, ethereum, bitcoin, etc.",
     },
     {
-      name: "Wallet_Insights",
-      description:
-        "Get wallet-level data containing balance (total worth), recent transactions, and NFTs owned by the wallet",
+      name: "wallet_transactions",
+      description: "Get wallet-level data containing recent transactions",
+      args: "wallet address or ENS name",
+    },
+    {
+      name: "wallet_nfts",
+      description: "Get wallet-level data containing NFTs owned by the wallet",
+      args: "wallet address or ENS name",
+    },
+    {
+      name: "wallet_balance",
+      description: "Get wallet-level data containing balance (total worth)",
       args: "wallet address or ENS name",
     },
     {
@@ -22,6 +31,16 @@ export default async function (goal, apiKey, model, task) {
       description:
         "Get Top Collections, Top NFTs,Top NFTs Sold, Defi data, and Matic price",
       args: "query related to nft",
+    },
+    {
+      name: "top_eth_collections",
+      description: "Get Top NFTs Collections on Ethereum",
+      args: "none",
+    },
+    {
+      name: "top_polygon_collections",
+      description: "Get Top NFTs Collections on Polygon/Matic",
+      args: "none",
     },
     {
       name: "dappRadar",
