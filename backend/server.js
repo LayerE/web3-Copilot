@@ -6,19 +6,9 @@ import {
   getNFTAnalytics,
   getAPIKeyCheck,
   compileSolc,
-  getAlgoliaGptResponse,
-  createQuery,
-  getSiteData,
-  getSearchResults,
-  agentAnalyze,
-  agentStart,
-  getDataExplain,
-  PotentialAirdrop,
-  getImage,
 } from "./helpers/index.js";
 
 import { parseForm, bulkUploadForm } from "./middleware/parseForm.js";
-import algoliasearch from "algoliasearch";
 
 import {
   TwitterLogin,
@@ -113,50 +103,6 @@ app.post("/task/verify", validateToken, TaskVerify);
 app.post("/user/login", LoginController);
 app.get("/user/status", validateToken, UserStatusController);
 
-//Raw stats data - temp
-app.post("/stats/raw", isAuth, async (req, res) => {
-  try {
-    const { message, wallet, history, apiKey } = req.body;
-    if (!message || !history) {
-      return res.status(400).json({ message: "Bad request" });
-    }
-    // Generate a unique ID for the request to store analytics data
-    const id = uuidv4();
-    let { conversationId } = req.body;
-    conversationId = conversationId || uuidv4();
-    const data = await getNFTAnalytics(
-      message,
-      wallet,
-      apiKey ?? false,
-      req.url
-    );
-    if (!data) return res.status(400).json({ message: "Invalid response" });
-    if (data?.error) {
-      return res.status(400).json({ message: data.error });
-    }
-    res.json(data.dataJSON);
-    await Analytics.create({
-      messageID: id,
-      wallet: wallet,
-      prompt: message,
-      persona: "stats - neutral",
-      response: JSON.stringify(data.dataJSON),
-      isAPIKeyUsed: apiKey ? true : false,
-    });
-    await writeConversations(
-      conversationId,
-      message,
-      JSON.stringify(data.dataJSON),
-      wallet
-    );
-    console.log("Request completed");
-    console.log("Request completed");
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
 // API Key Check (GPT-4 enabled)
 app.post("/api-key/check", async (req, res) => {
   try {
@@ -175,9 +121,9 @@ app.post("/api-key/check", async (req, res) => {
   }
 });
 // agents
-app.post("/agent/task", AgentTasks);
-app.post("/agent/analyze", AgentAnalyze);
-app.post("/agent/summarize", AgentSummarizer);
+app.post("/agent/task", isAuth, AgentTasks);
+app.post("/agent/analyze", isAuth, AgentAnalyze);
+app.post("/agent/summarize", isAuth, AgentSummarizer);
 
 app.post("/compile", async (req, res) => {
   try {

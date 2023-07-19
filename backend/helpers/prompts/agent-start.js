@@ -18,10 +18,10 @@ export default async function (goal, apiKey, model, message) {
     Return the response as a formatted array of strings that can be used in JSON.parse() 
     Examples:
     [
-        "What is the top trending NFT collection?",
-        "What is the floor price of the top trending NFT collection?",
-        "Research about the Ecosystem",
-        "Search for a query on Google",
+      "step 1",
+      "step 2",
+      "step 3",
+      "step 4"
     ]
     `;
 

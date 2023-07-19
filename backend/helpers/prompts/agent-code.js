@@ -8,7 +8,7 @@ const { OPENAI_API_KEY } = process.env;
 
 const encoding = encoding_for_model("gpt-4");
 
-export default async function (data, goal, apiKey, model) {
+export default async function (data, goal, answer, apiKey, model) {
   try {
     const configuration = new Configuration({
       apiKey: apiKey || OPENAI_API_KEY,
@@ -20,7 +20,7 @@ export default async function (data, goal, apiKey, model) {
 
     For reference, your high level goal is to ${goal}.
     ${data}
-    
+    ${answer.length > 0 ? `Previous summary: ${answer}` : ""}
     Provide no information about who you are and focus on writing code.
     Ensure code is bug and error free and explain complex concepts through comments
     Respond in well-formatted markdown. Ensure code blocks are used for code sections.

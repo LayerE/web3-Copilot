@@ -27,10 +27,20 @@ export default async function (goal, apiKey, model, task) {
       args: "wallet address or ENS name",
     },
     {
-      name: "NFT_Insights",
+      name: "Specific_NFT_Info",
       description:
-        "Get Top Collections, Top NFTs,Top NFTs Sold, Defi data, and Matic price",
+        "Get NFT Level Data like trades, floor price, etc for a specific NFT collection",
+      args: "collection name",
+    },
+    {
+      name: "NFT_Insights",
+      description: "Get Top Collections, Top NFTs,Top NFTs Sold, Defi data",
       args: "query related to nft",
+    },
+    {
+      name: "top_nfts_collections",
+      description: "Get Top NFTs Collections from all blockchains",
+      args: "none",
     },
     {
       name: "top_eth_collections",
@@ -52,11 +62,11 @@ export default async function (goal, apiKey, model, task) {
       description: "Helps you write code or debug code",
       args: "none",
     },
-    // {
-    //   name: "image_gen",
-    //   description: "Used to sketch, draw, or generate an image.",
-    //   args: "The input prompt to the image generator.This should be a detailed description of the image touching on image style, image focus, color, etc.",
-    // },
+    {
+      name: "image_gen",
+      description: "Used to sketch, draw, or generate an image.",
+      args: "The input prompt to the image generator.This should be a detailed description of the image touching on image style, image focus, color, etc.",
+    },
   ];
 
   try {

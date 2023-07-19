@@ -1,17 +1,7 @@
 import {
   getSearchResults,
-  getChatResponse,
-  getSource,
   validateSearchResults,
-  createQuery,
-  getSuggestions,
   getNFTAnalytics,
-  getDataExplain,
-  getMessageType,
-  getCodeResponse,
-  getContractCode,
-  MintNFT,
-  getSiteMetadata,
   getDappDetails,
   decrementTokens,
   recordAnalyticsAndWriteConversation,
@@ -19,26 +9,44 @@ import {
   agentStart,
   agentExplainer,
   getWalletAnalytics,
-  writeConversations,
   agentSummarizer,
   getImage,
   ImageGenSummarizer,
   agentCode,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
-import restrictedKeywords from "../helpers/handlers/restrictedKeywords.js";
 
 import { v4 as uuidv4 } from "uuid";
 
 const AgentTasks = async (req, res) => {
   try {
-    const { goal, name } = req.body;
+    const { goal, name, apiKey, wallet } = req.body;
+    let { model } = req.body;
+    model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo";
     if (!goal || !name)
       return res.status(400).json({ message: "Invalid request" });
     const id = uuidv4();
-    const tasks = await agentStart(goal, false, "gpt-3.5-turbo", name);
+    const tasks = await agentStart(
+      goal,
+      apiKey ?? false,
+      "gpt-3.5-turbo",
+      name
+    );
     if (!tasks) return res.status(400).json({ message: "Invalid request" });
-    res.status(200).json({ tasks, id });
+    await recordAnalyticsAndWriteConversation(
+      id,
+      wallet ?? false,
+      goal,
+      tasks?.map((task) => task).join(" "),
+      apiKey ?? false,
+      model !== "gpt-4" ? "gpt-3.5-turbo" : model,
+      id,
+      false,
+      false,
+      false,
+      false
+    );
+    return res.status(200).json({ tasks, id });
   } catch (error) {
     console.log(error);
     res.status(503).json({ message: "Something went wrong." });
@@ -47,16 +55,21 @@ const AgentTasks = async (req, res) => {
 
 const AgentAnalyze = async (req, res) => {
   try {
-    const { goal, task } = req.body;
-    let { id } = req.body;
+    const { goal, task, apiKey, wallet } = req.body;
+    let { id, model } = req.body;
     if (!id) id = uuidv4();
     if (!goal || !task)
       return res.status(400).json({ message: "Invalid request" });
-
-    let tasks = await agentAnalyze(goal, false, "gpt-3.5-turbo", task);
+    model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo";
+    let tasks = await agentAnalyze(
+      goal,
+      apiKey ?? false,
+      "gpt-3.5-turbo",
+      task
+    );
     let maxRetries = 5;
     while (!tasks && maxRetries > 0) {
-      tasks = await agentAnalyze(goal, false, "gpt-3.5-turbo", task);
+      tasks = await agentAnalyze(goal, apiKey ?? false, "gpt-3.5-turbo", task);
       maxRetries--;
     }
     if (maxRetries === 0) {
@@ -77,7 +90,7 @@ const AgentAnalyze = async (req, res) => {
               searchResults,
               "new_dev",
               req.body?.answer || "",
-              "gpt-3.5-turbo"
+              model
             );
             if (searchData) {
               toolData = { type: "search", data: searchData };
@@ -89,7 +102,7 @@ const AgentAnalyze = async (req, res) => {
           toolData = { type: "code", data: task };
           break;
         case "dapp-radar":
-          const dappRadar = await getDappRadar(task);
+          const dappRadar = await getDappDetails(task);
           toolData = { type: "dapp-radar", data: dappRadar };
           break;
         case "NFT_Insights":
@@ -98,23 +111,47 @@ const AgentAnalyze = async (req, res) => {
           break;
         case "top_eth_collections":
           const topEthCollections = await getNFTAnalytics(
-            ["/topCollectionCrosschain?chain=rest"],
-            false,
-            false,
+            [
+              "/topCollectionCrosschain?chain=rest&page=1&sortBy=volume_1d&duration=1d&sortDirection=desc",
+            ],
+            wallet ?? false,
+            apiKey ?? false,
             false,
             true
           );
           toolData = { type: "nft-analytics", data: topEthCollections };
           break;
+        case "top_nfts_collections":
+          const topNFTsCollections = await getNFTAnalytics(
+            [
+              "/topCollectionCrosschain?chain=crosschain&page=1&sortBy=volume_1d&duration=1d&sortDirection=desc",
+            ],
+            wallet ?? false,
+            apiKey ?? false,
+            false,
+            true
+          );
+          toolData = { type: "nft-analytics", data: topNFTsCollections };
+          break;
         case "top_polygon_collections":
           const topPolygonCollections = await getNFTAnalytics(
             ["/topCollection?duration=3"],
-            false,
-            false,
+            wallet ?? false,
+            apiKey ?? false,
             false,
             true
           );
           toolData = { type: "nft-analytics", data: topPolygonCollections };
+          break;
+        case "Specific_NFT_Info":
+          const nftInfo = await getNFTAnalytics(
+            [`/collection/${tasks?.args?.arg}?chain=eth`],
+            wallet ?? false,
+            apiKey ?? false,
+            false,
+            true
+          );
+          toolData = { type: "nft-analytics", data: nftInfo };
           break;
         case "wallet_transactions":
         case "wallet_balance":
@@ -136,19 +173,33 @@ const AgentAnalyze = async (req, res) => {
       if (!toolData)
         return res.status(400).json({ message: "Invalid request" });
 
+      if (wallet && !apiKey) {
+        await decrementTokens(wallet, model);
+      }
       const chat =
         toolData?.type === "image"
-          ? await ImageGenSummarizer(toolData?.data, goal, false, "gpt-4")
+          ? await ImageGenSummarizer(
+              toolData?.data,
+              goal,
+              apiKey ?? false,
+              "gpt-4"
+            )
           : toolData?.type === "code"
-          ? await agentCode(toolData?.data, goal, false, "gpt-4")
+          ? await agentCode(
+              toolData?.data,
+              goal,
+              req.body.answer ?? false,
+              apiKey ?? false,
+              model
+            )
           : await agentExplainer(
               toolData?.data,
               task,
               goal,
               req.body.answer ?? false,
+              apiKey ?? false,
               false,
-              false,
-              "gpt-4"
+              model
             );
       if (!chat) return res.status(400).json({ message: "Invalid request" });
       res.writeHead(200, {
@@ -179,7 +230,19 @@ const AgentAnalyze = async (req, res) => {
                 })}\n\n`
               );
               res.end();
-              await writeConversations(id, task, answer, false);
+              await recordAnalyticsAndWriteConversation(
+                id,
+                wallet ?? false,
+                task,
+                answer,
+                apiKey ?? false,
+                model !== "gpt-4" ? "gpt-3.5-turbo" : model,
+                id,
+                false,
+                false,
+                false,
+                false
+              );
               console.log("Request completed");
             });
           } else {
@@ -205,13 +268,15 @@ const AgentAnalyze = async (req, res) => {
 
 const AgentSummarizer = async (req, res) => {
   try {
-    const { goal, results } = req.body;
-    let { id } = req.body;
-    if (!id) id = uuidv4();
+    const { goal, results, wallet, apiKey } = req.body;
+    let { model } = req.body;
+
+    const id = req.body.id || uuidv4();
+    model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo-16k";
     if (!goal || !results)
       return res.status(400).json({ message: "Invalid request" });
 
-    const chat = await agentSummarizer(results, goal, false, "gpt-4");
+    const chat = await agentSummarizer(results, goal, apiKey ?? false, model);
     if (!chat) return res.status(400).json({ message: "Invalid request" });
     res.writeHead(200, {
       "Content-Type": "text/event-stream",
@@ -239,14 +304,31 @@ const AgentSummarizer = async (req, res) => {
               })}\n\n`
             );
             res.end();
+            await recordAnalyticsAndWriteConversation(
+              id,
+              wallet ?? false,
+              "summarize",
+              answer,
+              apiKey ?? false,
+              model !== "gpt-4" ? "gpt-3.5-turbo" : model,
+              id,
+              false,
+              false,
+              false,
+              false
+            );
             console.log("Request completed");
           });
         } else {
-          const parsed = JSON?.parse(mes);
-          const content = parsed.choices[0].delta.content;
-          if (content) {
-            sendData(content, res);
-            answer += content;
+          try {
+            const parsed = JSON?.parse(mes);
+            const content = parsed.choices[0].delta.content;
+            if (content) {
+              sendData(content, res);
+              answer += content;
+            }
+          } catch (error) {
+            console.log("Error parsing answer");
           }
         }
       }

@@ -14,7 +14,7 @@ export enum SubmitKey {
   MetaEnter = "Meta + Enter",
 }
 
-export const BE_URL = "https://layere-copilot.up.railway.app";
+export const BE_URL = "https://layere-copilot.up.railway.app"
 
 export interface Prompt {
   id?: number | string;
@@ -208,6 +208,12 @@ export const useChatStore = create<ChatStore>()(
           const res = await axios.post(BE_URL + "/agent/task", {
             goal: goal_title,
             name: agent_name ?? nanoid(),
+          }, {
+            headers: {
+              "Content-Type": "application/json",
+              authorization: get().jwt ?? null,
+              "api-key": get().api_key ?? null,
+            },
           });
           if (res.status === 200) {
             get().updateSessionData(session_id, (session) => {
@@ -215,13 +221,13 @@ export const useChatStore = create<ChatStore>()(
 
               let tasks = res.data.tasks.map(
                 (task: string) =>
-                  ({
-                    id: nanoid(),
-                    title: task,
-                    content: null,
-                    streamingTask: false,
-                    taskFullyLoaded: false,
-                  } as Task)
+                ({
+                  id: nanoid(),
+                  title: task,
+                  content: null,
+                  streamingTask: false,
+                  taskFullyLoaded: false,
+                } as Task)
               );
               if (tasks.length > 0) {
                 let goal: Goal = {
@@ -262,12 +268,15 @@ export const useChatStore = create<ChatStore>()(
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              authorization: get().jwt ?? null,
+              "api-key": get().api_key ?? null,
             },
             body: JSON.stringify({
+              id: sessionID,
               goal: goal.title,
               results: results,
               name: nanoid(),
-            }),
+            },),
             openWhenHidden: true,
             async onopen(response) {
               if (response.status === 429) {
@@ -724,11 +733,11 @@ export const useChatStore = create<ChatStore>()(
                 });
               } else {
                 data?.data?.id ||
-                data?.data?.completed ||
-                data?.data?.conversationId ||
-                data?.data?.type ||
-                data?.data?.queries ||
-                data?.data?.links
+                  data?.data?.completed ||
+                  data?.data?.conversationId ||
+                  data?.data?.type ||
+                  data?.data?.queries ||
+                  data?.data?.links
                   ? dataEvent.push("")
                   : dataEvent.push(data?.data);
                 prompt.content = dataEvent.join("");
@@ -836,12 +845,12 @@ export const useChatStore = create<ChatStore>()(
                   if (_prompt.id === prompt.id) {
                     _prompt.content =
                       get().isLoggedIn &&
-                      get().jwt !== "" &&
-                      get()?.credits <= 0
+                        get().jwt !== "" &&
+                        get()?.credits <= 0
                         ? "All credits used up! Come back tomorrow for more credits."
                         : get()?.credits <= 0
-                        ? "You have no credits left. Please Connect your wallet to get more credits."
-                        : "Error fetching response";
+                          ? "You have no credits left. Please Connect your wallet to get more credits."
+                          : "Error fetching response";
                     _prompt.streaming = false;
                   }
                   return _prompt;
@@ -854,8 +863,8 @@ export const useChatStore = create<ChatStore>()(
           get().isLoggedIn && get().jwt !== "" && get()?.credits <= 0
             ? "All credits used up! Come back tomorrow for more credits."
             : get()?.credits <= 0
-            ? "You have no credits left. Please Connect your wallet to get more credits."
-            : "Error fetching response";
+              ? "You have no credits left. Please Connect your wallet to get more credits."
+              : "Error fetching response";
           return error;
         }
       },
@@ -866,11 +875,14 @@ export const useChatStore = create<ChatStore>()(
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              authorization: get().jwt ?? null,
+              "api-key": get().api_key ?? null,
             },
             body: JSON.stringify({
               goal: goal.title,
               task: task.title,
               name: nanoid(),
+              id: sessionID,
               answer: prevTaskContent,
             }),
             openWhenHidden: true,

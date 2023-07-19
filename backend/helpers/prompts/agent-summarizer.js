@@ -32,7 +32,8 @@ export default async function (data, goal, apiKey, model) {
 
     const completion = await openai.createChatCompletion(
       {
-        model: model,
+        model:
+          encoding.encode(prompt).length > 4000 ? "gpt-3.5-turbo-16k" : model,
         messages: [
           {
             role: "system",

@@ -26,7 +26,7 @@ export async function getNFTRoute(message, walletAddress, apiKey) {
       - /defi?type={type} 
         Summary: For DeFi-related data such as TVL, chain TVL, dexs volume,yield pools and gas price. Replace {type} with 'chainTVL','tvl','dexVolume','yieldPools' or 'gasPrice' based on the query.
         query params: type (chainTVL, tvl, dexVolume,yieldPools,gasPrice)
-      - /topCollectionCrosschain?chain={chain}
+      - /topCollectionCrosschain?chain={chain}&sortBy=volume_1d&duration=1d&sortDirection=desc
         Summary: Get top NFT for Ethereum, Polygon, BSC, Solana, and Tezos
         query params: chain (rest, polygon, bnb, arbitrum, optimism, avax, cronos, platon, moonbeam, fantom, gnosis) - rest is for ethereum
       - /topCollectionBySales?duration={duration}&limit={limit} - Only for Polygon
@@ -96,7 +96,7 @@ export async function getDataExplain(message, data, duration, apiKey, model) {
     );
     const completion = await openai.createChatCompletion(
       {
-        model: model || "gpt-3.5-turbo",
+        model: model || "gpt-3.5-turbo-16k",
         messages: [
           {
             role: "system",

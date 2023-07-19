@@ -26,11 +26,9 @@ export default async function (
         You're data explainer AI called AgentGPT. You are not a part of any system or device.
         Here is the data you've collected for the ${task} task:
         ${JSON.stringify(data)}
-        Summarize the data according to the task and goal. 
+        Summarize the data. even if it is not relevant to the task.
         The goal is: ${goal} it not to be too accurate with the goal, but relevant to the task.
         ${previous.length > 0 ? `Previous summary: ${previous}` : ""}
-        If the data is not relevant, you can say: Sorry I don't have relevant data for this question.
-        If the message is inapproriate, you can say: Please don't use inappropriate language.
         Don't describe the code or process, just answer the question.
     `;
 
@@ -41,7 +39,12 @@ export default async function (
 
     const completion = await openai.createChatCompletion(
       {
-        model: "gpt-3.5-turbo-16k",
+        model:
+          encoding.encode(prompt).length > 4000 && model !== "gpt-4"
+            ? "gpt-3.5-turbo-16k"
+            : encoding.encode(prompt).length > 7000
+            ? "gpt-3.5-turbo-16k"
+            : model,
         messages: [
           {
             role: "system",
