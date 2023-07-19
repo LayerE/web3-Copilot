@@ -1,5 +1,6 @@
 import React, {
   FormEvent,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -158,7 +159,6 @@ const SearchBar = ({
   const isMobileView = useIsMobView();
   const isIPADView = useIPADScreen();
   const [input, setInput] = useState<string>("");
-  const inputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
@@ -184,24 +184,25 @@ const SearchBar = ({
         "Press / for plugins",
       ];
 
-  const handleListKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement> | any
-  ) => {
-    if (event.key === "ArrowUp") {
-      setSelectedItemIndex((prevIndex) =>
-        prevIndex === 0 ? SearchHints.length - 1 : prevIndex - 1
-      );
-    } else if (event.key === "ArrowDown") {
-      setSelectedItemIndex((prevIndex) =>
-        prevIndex === SearchHints.length - 1 ? 0 : prevIndex + 1
-      );
-    } else if (event.key === "Enter" && input.length === 1) {
-      setTagClicked(false);
-      textareaRef.current!.value = "";
-      setInput("");
-      setCMD(SearchHints[selectedItemIndex].type);
-    }
-  };
+  const handleListKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement> | any) => {
+      if (event.key === "ArrowUp") {
+        setSelectedItemIndex((prevIndex) =>
+          prevIndex === 0 ? SearchHints.length - 1 : prevIndex - 1
+        );
+      } else if (event.key === "ArrowDown") {
+        setSelectedItemIndex((prevIndex) =>
+          prevIndex === SearchHints.length - 1 ? 0 : prevIndex + 1
+        );
+      } else if (event.key === "Enter" && input.length === 1) {
+        setTagClicked(false);
+        textareaRef.current!.value = "";
+        setInput("");
+        setCMD(SearchHints[selectedItemIndex].type);
+      }
+    },
+    []
+  );
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
     if (jwt && isLoggedIn && address) {
@@ -289,14 +290,11 @@ const SearchBar = ({
       _open("signUpModal");
     }
   };
+
   const handleKeyDown = (
     event: React.KeyboardEvent<HTMLTextAreaElement> | any
   ) => {
-    if (keyCheck(event) && textareaRef.current!.value?.length === 0) {
-      setCMD("");
-      setInput("");
-      textareaRef.current!.value = "";
-    } else if ((event.ctrlKey || event.metaKey) && event.key === "/") {
+    if ((event.ctrlKey || event.metaKey) && event.key === "/") {
       //@ts-ignore
       if (window?.gtag) {
         //@ts-ignore
@@ -376,7 +374,7 @@ const SearchBar = ({
     }
   };
   function handleTextAreaKeyDown(
-    event: React.KeyboardEvent<HTMLTextAreaElement> | any
+    event: React.KeyboardEvent<HTMLTextAreaElement>
   ) {
     if (event.which === 13) {
       if (event.shiftKey && event.key === "Enter") {
@@ -419,6 +417,12 @@ const SearchBar = ({
         ? `${currentCMD} ${event.target.value}`
         : event.target.value
     );
+    if (textareaRef.current) {
+      if (textareaRef.current.value.length === 0) {
+        setCMD("");
+        setInput("");
+      }
+    }
   };
 
   const selectTag = () => {
@@ -438,7 +442,7 @@ const SearchBar = ({
       textareaRef.current!.value = examplePrompt;
       setInput(`${currentCMD} ${examplePrompt}`);
     }
-  }, [examplePrompt]);
+  }, [examplePrompt?.length]);
   useEffect(() => {
     if (router.query.input) {
       setInput(String(router?.query.input));
@@ -458,6 +462,7 @@ const SearchBar = ({
       window.removeEventListener("keydown", handleListKeyDown);
     };
   }, [handleListKeyDown]);
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       setCurrentPlaceholderIndex((prevIndex) =>
@@ -616,7 +621,6 @@ const CMD = styled.span`
   border-radius: 1rem;
   display: grid;
   font-size: 0.9rem;
-
   place-items: center;
   cursor: pointer;
   margin-top: auto;
