@@ -18,6 +18,7 @@ import {
   tokenStats,
   getToken,
   agentExplainer,
+  tokenSummarizer,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
 import restrictedKeywords from "../helpers/handlers/restrictedKeywords.js";
@@ -529,9 +530,8 @@ const AirdropController = async (req, res) => {
     const apiFetch = await getToken(data.tool);
     console.log(apiFetch);
 
-    const streamData = await agentExplainer(
+    const streamData = await tokenSummarizer(
       apiFetch,
-      message,
       message,
       history,
       apiKey,
@@ -593,12 +593,16 @@ const AirdropController = async (req, res) => {
 
           console.log("Request completed");
         } else {
-          const parsed = JSON.parse(mes);
-          const content = parsed.choices[0].delta.content;
+          try {
+            const parsed = JSON?.parse(mes);
+            const content = parsed.choices[0].delta.content;
 
-          if (content) {
-            sendData(content, res);
-            answer += content;
+            if (content) {
+              sendData(content, res);
+              answer += content;
+            }
+          } catch (error) {
+            console.log("Error in parsing JSON");
           }
         }
       }

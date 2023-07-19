@@ -42,6 +42,8 @@ import getToken from "./token-api.js";
 import tokenStats from "./prompts/token-stats.js";
 import PotentialAirdrop from "./scraper/get-potential-airdrop.js";
 import agentSummarizer from "./prompts/agent-summarizer.js";
+import tokenSummarizer from "./prompts/token-summarizer.js";
+
 export {
   polygonWikiParser,
   getSource,
@@ -84,4 +86,5 @@ export {
   tokenStats,
   PotentialAirdrop,
   agentSummarizer,
+  tokenSummarizer,
 };
