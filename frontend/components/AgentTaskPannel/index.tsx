@@ -34,6 +34,7 @@ const AgentTaskPannel = () => {
       setHeight(footerRef?.current?.scrollHeight);
     }
   }, [footerRef?.current, footerHeight]);
+
   return (
     <AgentTaskPannelWrapper showTaskPannel={showModal.showTaskPannel}>
       <Row
@@ -110,14 +111,22 @@ const AgentTaskPannel = () => {
               border: "none",
               borderRadius: ".5rem",
             }}
-            disabled={currentSession().goals.length === 0}
+            disabled={
+              currentSession().goals.length === 0 ||
+              !currentSession()?.goals?.slice(-1)[0]?.summary ||
+              currentSession()?.goals?.slice(-1)[0]?.streamingGoal
+            }
             onChange={(e) => setTaskTitle(e.target.value)}
             placeholder="Enter task..."
             required
           />
           <Button
             style={{ width: "100%", gap: ".5rem", padding: ".75rem" }}
-            disabled={currentSession().goals.length === 0}
+            disabled={
+              currentSession().goals.length === 0 ||
+              !currentSession()?.goals?.slice(-1)[0]?.summary ||
+              currentSession()?.goals?.slice(-1)[0]?.streamingGoal
+            }
           >
             <Image src={assets.icons.icon_task_add} alt="add_task" />
             <span>Add Task</span>

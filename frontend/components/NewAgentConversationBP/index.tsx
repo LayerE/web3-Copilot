@@ -155,6 +155,9 @@ const AppTitle = styled.h2`
     border-radius: 0.5rem;
     background: linear-gradient(180deg, #8a46ff 0%, #6e38cc 100%);
   }
+  ${(props) => props.theme.mediaWidth.upToMedium`
+    justify-content:center;
+  `}
 `;
 const Goals = styled.div`
   display: flex;
