@@ -25,7 +25,7 @@ const AgentTasks = async (req, res) => {
     model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo";
     if (!goal || !name)
       return res.status(400).json({ message: "Invalid request" });
-    const id = uuidv4();
+    const id = req.body.id || uuidv4();
     const tasks = await agentStart(
       goal,
       apiKey ?? false,
@@ -44,7 +44,7 @@ const AgentTasks = async (req, res) => {
       false,
       false,
       false,
-      false
+      "agent"
     );
     return res.status(200).json({ tasks, id });
   } catch (error) {
@@ -241,7 +241,7 @@ const AgentAnalyze = async (req, res) => {
                 false,
                 false,
                 false,
-                false
+                "agent"
               );
               console.log("Request completed");
             });
@@ -315,7 +315,7 @@ const AgentSummarizer = async (req, res) => {
               false,
               false,
               false,
-              false
+              "agent"
             );
             console.log("Request completed");
           });

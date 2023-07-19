@@ -208,6 +208,8 @@ export const useChatStore = create<ChatStore>()(
           const res = await axios.post(BE_URL + "/agent/task", {
             goal: goal_title,
             name: agent_name ?? nanoid(),
+            model: get().gptModel ?? null,
+            id: session_id,
           }, {
             headers: {
               "Content-Type": "application/json",
@@ -276,6 +278,7 @@ export const useChatStore = create<ChatStore>()(
               goal: goal.title,
               results: results,
               name: nanoid(),
+              model: get().gptModel ?? null,
             },),
             openWhenHidden: true,
             async onopen(response) {
@@ -884,6 +887,7 @@ export const useChatStore = create<ChatStore>()(
               name: nanoid(),
               id: sessionID,
               answer: prevTaskContent,
+              model: get().gptModel ?? null,
             }),
             openWhenHidden: true,
             async onopen(response) {
