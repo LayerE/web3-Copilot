@@ -21,6 +21,9 @@ import {
   getWalletAnalytics,
   writeConversations,
   agentSummarizer,
+  getImage,
+  ImageGenSummarizer,
+  agentCode,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
 import restrictedKeywords from "../helpers/handlers/restrictedKeywords.js";
@@ -123,7 +126,10 @@ const AgentAnalyze = async (req, res) => {
           );
           toolData = { type: "wallet-analytics", data: walletAnalytics };
           break;
-
+        case "image_gen":
+          const data = await getImage(tasks?.args?.arg ?? task);
+          toolData = { type: "image", data: data };
+          break;
         default:
           toolData = { type: "web", data: tasks?.args };
       }
@@ -131,8 +137,10 @@ const AgentAnalyze = async (req, res) => {
         return res.status(400).json({ message: "Invalid request" });
 
       const chat =
-        toolData?.type === "code"
-          ? await getCodeResponse(task, goal, "new_dev", false, false, "gpt-4")
+        toolData?.type === "image"
+          ? await ImageGenSummarizer(toolData?.data, goal, false, "gpt-4")
+          : toolData?.type === "code"
+          ? await agentCode(toolData?.data, goal, false, "gpt-4")
           : await agentExplainer(
               toolData?.data,
               task,

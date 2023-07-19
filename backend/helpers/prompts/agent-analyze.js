@@ -52,6 +52,11 @@ export default async function (goal, apiKey, model, task) {
       description: "Helps you write code or debug code",
       args: "none",
     },
+    // {
+    //   name: "image_gen",
+    //   description: "Used to sketch, draw, or generate an image.",
+    //   args: "The input prompt to the image generator.This should be a detailed description of the image touching on image style, image focus, color, etc.",
+    // },
   ];
 
   try {

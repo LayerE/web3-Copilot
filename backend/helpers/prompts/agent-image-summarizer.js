@@ -8,21 +8,16 @@ const { OPENAI_API_KEY } = process.env;
 
 const encoding = encoding_for_model("gpt-4");
 
-export default async function (data, goal, apiKey, model) {
+export default async function ImageGenSummarizer(data, goal, apiKey, model) {
   try {
     const configuration = new Configuration({
       apiKey: apiKey || OPENAI_API_KEY,
     });
     const openai = new OpenAIApi(configuration);
     const prompt = ` 
-    Combine the following text into a cohesive document: 
-    
+    Here is the Image you've requested for the ${goal} task:
     ${JSON.stringify(data)}
-    
-    Write using clear markdown formatting in a style expected of the goal ${goal}.
-    Be as clear, informative, and descriptive as necessary.   
-    Don't just say I don't have relevant data for this question. try to summarize the data according to the goal and task.
-    If there is no information provided, say "There is nothing to summarize".  
+    return as image 
     `;
 
     console.log(
@@ -32,7 +27,7 @@ export default async function (data, goal, apiKey, model) {
 
     const completion = await openai.createChatCompletion(
       {
-        model: model,
+        model: "gpt-4",
         messages: [
           {
             role: "system",

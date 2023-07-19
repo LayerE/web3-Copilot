@@ -14,6 +14,7 @@ import {
   agentStart,
   getDataExplain,
   PotentialAirdrop,
+  getImage,
 } from "./helpers/index.js";
 
 import { parseForm, bulkUploadForm } from "./middleware/parseForm.js";
@@ -88,6 +89,24 @@ app.post("/stats", isAuth, NFTStatsController);
 app.post("/mint", isAuth, MintNFTController);
 app.post("/tokens", isAuth, AirdropController);
 
+app.post("/imagegen", async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ message: "Bad request" });
+    }
+    const data = await getImage(message);
+    if (!data) return res.status(400).json({ message: "Invalid response" });
+    if (data?.error) {
+      return res.status(400).json({ message: data.error });
+    }
+    res.json(data);
+    console.log("Request completed");
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 //No auth added here🙂
 app.post("/conversation/id", getConversationById);
 app.post("/conversation/user", getConversationByUser);

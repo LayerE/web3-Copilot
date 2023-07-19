@@ -15,14 +15,19 @@ export default async function (data, goal, apiKey, model) {
     });
     const openai = new OpenAIApi(configuration);
     const prompt = ` 
-    Combine the following text into a cohesive document: 
+    You are a world-class software engineer and an expert in all programing languages,
+    software systems, and architecture.
+
+    For reference, your high level goal is to ${goal}.
+    ${data}
     
-    ${JSON.stringify(data)}
-    
-    Write using clear markdown formatting in a style expected of the goal ${goal}.
-    Be as clear, informative, and descriptive as necessary.   
-    Don't just say I don't have relevant data for this question. try to summarize the data according to the goal and task.
-    If there is no information provided, say "There is nothing to summarize".  
+    Provide no information about who you are and focus on writing code.
+    Ensure code is bug and error free and explain complex concepts through comments
+    Respond in well-formatted markdown. Ensure code blocks are used for code sections.
+    Approach problems step by step and file by file, for each section, use a heading to describe the section.
+
+    Write code to accomplish the following:
+    ${goal}
     `;
 
     console.log(
