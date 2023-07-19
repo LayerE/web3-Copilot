@@ -1,8 +1,23 @@
 import textversion from "textversionjs";
+import { load } from "cheerio";
 
+const selectedSites = [
+  "https://portal.thirdweb.com/",
+  "https://docs.alchemy.com/",
+  "https://docs.infura.io/",
+  "https://docs.chain.link/",
+];
 export default async function (url) {
   const urlFetch = await fetch(url);
   let htmlText = await urlFetch.text();
+
+  if (selectedSites.includes(url)) {
+    const $ = load(htmlText);
+    $("footer").remove();
+    $("header").remove();
+    htmlText = $("main").html() || $("article").html();
+  }
+
   const data = await textversion(htmlText, {
     linkProcess: (href, linkText) => linkText, // Ignore links
     imgProcess: () => "", // Ignore images
