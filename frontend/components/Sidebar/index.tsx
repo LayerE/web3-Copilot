@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import styled from "styled-components";
 import Button from "../common/Button";
-import { AlertTriangle, Menu, Plus, Zap, X } from "react-feather";
+import { AlertTriangle, Menu, Plus, Zap, X, XCircle } from "react-feather";
 import Column from "../common/Column";
 import { useChatStore } from "@/store/app";
 import Session from "../Session";
@@ -37,11 +37,10 @@ const Sidebar = ({ onChangeTab }: { onChangeTab?: () => void }) => {
     jwt,
     api_key,
   } = useChatStore();
-  const { setIsOpen } = useTour();
+
   const router = useRouter();
   const [historyNav, setHistoryNav] = useState({ recent: true, fvrts: false });
-  const [showMenu, setShowMenu] = useState(false);
-  const { open, setTabID } = useAppState();
+  const { open, setTabID, showModal, close } = useAppState();
   const footerRef = useRef<HTMLDivElement>(null);
   const [footerHeight, setHeight] = useState(224);
 
@@ -91,239 +90,228 @@ const Sidebar = ({ onChangeTab }: { onChangeTab?: () => void }) => {
   }, [footerRef?.current, footerHeight, isLoggedIn]);
 
   return (
-    <SidebarWrapper navheight={showMenu ? "100%" : "3.5rem"}>
-      <ShowMedium>
-        <MobileNav>
-          {showMenu ? (
-            <X onClick={() => setShowMenu(false)} />
-          ) : (
-            <Menu onClick={() => setShowMenu(true)} />
-          )}
-          <SessionTitle>{currentSession().topic}</SessionTitle>
-          <Button
-            style={{
-              width: "fit-content",
-              padding: 0,
-              border: `none`,
-            }}
-            onClick={creatNewSession}
-            className="tour_new_chat_mob"
-          >
-            <Plus size="1.25rem" />
-          </Button>
-        </MobileNav>
-      </ShowMedium>
-
-      <SidebarDesktop hidebar={showMenu ? "true" : "false"}>
-        <SidebarCotent
+    <SidebarWrapper showSidebar={showModal.showSidebar}>
+      <SidebarCotent
+        style={{
+          height: `calc(100% - ${footerHeight}px)`,
+        }}
+      >
+        <Column
           style={{
-            height: `calc(100% - ${footerHeight}px)`,
+            gap: "2rem",
+            alignItems: "center",
+            borderBottom: `1px solid ${colors()?.stroke}`,
+            padding: "1rem",
           }}
         >
-          <Column
-            style={{
-              gap: "2rem",
-              alignItems: "center",
-              borderBottom: `1px solid ${colors()?.stroke}`,
-              padding: "1rem",
-            }}
-          >
-            <BrandLogo hideBetaLogo={true} />
-            <HideMedium style={{ width: "100%" }}>
-              <NewChatButton
-                id="new-chat"
-                className="tour_new_chat"
-                onClick={
-                  router.pathname === "/"
-                    ? () => router.push("/agent")
-                    : () => router.push("/")
-                }
+          <Row>
+            {showModal.showSidebar ? (
+              <Button
+                style={{ background: "none" }}
+                onClick={() => close("showSidebar")}
               >
-                <Zap size="1.25rem" />
-                {router.pathname === "/" ? (
-                  <span>Switch to AI Agent</span>
-                ) : (
-                  <span>Switch to Web3 Copilot</span>
-                )}
-              </NewChatButton>
-            </HideMedium>
-          </Column>
+                <XCircle />
+              </Button>
+            ) : null}
+            <BrandLogo hideBetaLogo={true} />{" "}
+          </Row>
 
-          <ChatHistory
-            className="tour_conversation_history"
-            style={
-              jwt && isLoggedIn ? {} : { flex: 1, justifyContent: "center" }
+          <NewChatButton
+            id="new-chat"
+            className="tour_new_chat"
+            onClick={
+              router.pathname === "/"
+                ? () => {
+                    router.push("/agent");
+                    close("showSidebar");
+                  }
+                : () => {
+                    router.push("/");
+                    close("showSidebar");
+                  }
             }
           >
-            {jwt && isLoggedIn ? (
-              <>
-                <Button
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: ".5rem",
-                    background: "transparent",
-                  }}
-                  onClick={creatNewSession}
-                >
-                  <Plus size="1rem" />
-                  <span>New Chat</span>
-                </Button>
-
-                {_sessions?.length >= 1 &&
-                  _sessions
-                    ?.filter((id) => !id.isFvrt)
-                    .map((session, idx) => (
-                      <Session
-                        key={idx}
-                        isActive={session?.id === currentSession()?.id}
-                        closeMenu={() => setShowMenu(false)}
-                        deleteSession={() =>
-                          removeSession(session?.id, session?.service)
-                        }
-                        session={session}
-                        selectSession={() => {
-                          selectSession(session?.id);
-                          // if (currentSession().prompts.length > 0)
-                          //   onChangeTab();
-                        }}
-                      />
-                    ))}
-
-                <Tab isActive={historyNav?.fvrts}>
-                  <span>Favourites ({_fvrtSessions?.length})</span>
-                </Tab>
-              </>
-            ) : null}
-            {jwt && isLoggedIn && _fvrtSessions?.length > 0 ? (
-              <>
-                {_fvrtSessions?.map((session, idx) => (
-                  <Session
-                    key={idx}
-                    isActive={session?.id === currentSession()?.id}
-                    closeMenu={() => setShowMenu(false)}
-                    deleteSession={() =>
-                      removeSession(session?.id, session?.service)
-                    }
-                    session={session}
-                    selectSession={() => {
-                      selectSession(session?.id);
-                      // if (currentSession().prompts.length > 0) onChangeTab();
-                    }}
-                  />
-                ))}
-              </>
-            ) :jwt && isLoggedIn && _fvrtSessions?.length < 1 ? (
-              <p
-                style={{
-                  textAlign: "center",
-                  padding: "1rem",
-                  color: "#807F8B",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: ".5rem",
-                  fontSize: ".9rem",
-                }}
-              >
-                <AlertTriangle color="#807F8B" size={20} />
-                <span>
-                  Looks like you don{"'"}t <br /> have a favourite session.
-                </span>
-              </p>
-            ) : null}
-
-            {!jwt && !isLoggedIn && (
-              <p
-                style={{
-                  textAlign: "center",
-                  padding: "1rem",
-                  color: "#807F8B",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: ".5rem",
-                }}
-              >
-                <Image src={assets.logos.logo_signup} alt="" width={100}/>
-                <span>
-                  Connect Wallet to <br />
-                  access History
-                </span>
-              </p>
+            <Zap size="1.25rem" />
+            {router.pathname === "/" ? (
+              <span>Switch to AI Agent</span>
+            ) : (
+              <span>Switch to Web3 Copilot</span>
             )}
-          </ChatHistory>
-        </SidebarCotent>
-        <SidebarFooter ref={footerRef}>
-          <Column
-            style={{
-              padding: "1rem",
-              gap: "2rem",
-              paddingBottom: 0,
-              alignItems: "center",
-            }}
-          >
-            {(jwt && isLoggedIn) || credits > 0 ? (
-              <Tippy content="Total credit balance" placement="right">
-                <CreditsBtn
-                  onClick={() => {
-                    open("showAppSettings");
-                    setTabID(3);
-                  }}
-                  style={{ justifyContent: "space-between" }}
-                >
-                  <span>
-                    Credit Balance :{" "}
-                    {api_key ? <span>N{"/"}A</span> : <span>{credits}</span>}{" "}
-                  </span>
+          </NewChatButton>
+        </Column>
 
-                  <Image src={assets.icons.icon_credits} alt="" width={20} />
-                </CreditsBtn>
-              </Tippy>
-            ) : null}
-          </Column>
-          <Column
-            style={{
-              padding: "1rem",
-              paddingBottom: 0,
-              width: "100%",
-            }}
-          >
-            {jwt && isLoggedIn ? (
-              <Tippy content="Check app settings" placement="right">
-                <SidebarBtn
-                  onClick={
-                    jwt && isLoggedIn
-                      ? () => {
-                          open("showAppSettings");
-                          setTabID(1);
-                        }
-                      : () => {}
+        <ChatHistory
+          className="tour_conversation_history"
+          style={jwt && isLoggedIn ? {} : { flex: 1, justifyContent: "center" }}
+        >
+          {jwt && isLoggedIn ? (
+            <>
+              <Button
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: ".5rem",
+                  background: "transparent",
+                }}
+                onClick={creatNewSession}
+              >
+                <Plus size="1rem" />
+                <span>New Chat</span>
+              </Button>
+
+              {_sessions?.length >= 1 &&
+                _sessions
+                  ?.filter((id) => !id.isFvrt)
+                  .map((session, idx) => (
+                    <Session
+                      key={idx}
+                      isActive={session?.id === currentSession()?.id}
+                      closeMenu={() => close("showSidebar")}
+                      deleteSession={() =>
+                        removeSession(session?.id, session?.service)
+                      }
+                      session={session}
+                      selectSession={() => {
+                        selectSession(session?.id);
+                        // if (currentSession().prompts.length > 0)
+                        //   onChangeTab();
+                      }}
+                    />
+                  ))}
+
+              <Tab isActive={historyNav?.fvrts}>
+                <span>Favourites ({_fvrtSessions?.length})</span>
+              </Tab>
+            </>
+          ) : null}
+          {jwt && isLoggedIn && _fvrtSessions?.length > 0 ? (
+            <>
+              {_fvrtSessions?.map((session, idx) => (
+                <Session
+                  key={idx}
+                  isActive={session?.id === currentSession()?.id}
+                  closeMenu={() => close("showSidebar")}
+                  deleteSession={() =>
+                    removeSession(session?.id, session?.service)
                   }
-                >
-                  <Image src={assets.icons.icon_settings} alt="" width={15} />
-                  <span>Settings</span>
-                </SidebarBtn>
-              </Tippy>
-            ) : null}
-
-            <SidebarBtn
-              id="how-to-use"
-              onClick={() =>
-                window.open(
-                  "https://layer-e.gitbook.io/polygon-copilot-docs/",
-                  "_blank"
-                )
-              }
+                  session={session}
+                  selectSession={() => {
+                    selectSession(session?.id);
+                    // if (currentSession().prompts.length > 0) onChangeTab();
+                  }}
+                />
+              ))}
+            </>
+          ) : jwt && isLoggedIn && _fvrtSessions?.length < 1 ? (
+            <p
+              style={{
+                textAlign: "center",
+                padding: "1rem",
+                color: "#807F8B",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: ".5rem",
+                fontSize: ".9rem",
+              }}
             >
-              <Image src={assets.logos.logo_layerE_circle} alt="" width={15} />{" "}
-              User Guide
-            </SidebarBtn>
-          </Column>
-        </SidebarFooter>
-      </SidebarDesktop>
+              <AlertTriangle color="#807F8B" size={20} />
+              <span>
+                Looks like you don{"'"}t <br /> have a favourite session.
+              </span>
+            </p>
+          ) : null}
+
+          {!jwt && !isLoggedIn && (
+            <p
+              style={{
+                textAlign: "center",
+                padding: "1rem",
+                color: "#807F8B",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: ".5rem",
+              }}
+            >
+              <Image src={assets.logos.logo_signup} alt="" width={100} />
+              <span>
+                Connect Wallet to <br />
+                access History
+              </span>
+            </p>
+          )}
+        </ChatHistory>
+      </SidebarCotent>
+      <SidebarFooter ref={footerRef}>
+        <Column
+          style={{
+            padding: "1rem",
+            gap: "2rem",
+            paddingBottom: 0,
+            alignItems: "center",
+          }}
+        >
+          {(jwt && isLoggedIn) || credits > 0 ? (
+            <Tippy content="Total credit balance" placement="right">
+              <CreditsBtn
+                onClick={() => {
+                  open("showAppSettings");
+                  setTabID(3);
+                }}
+                style={{ justifyContent: "space-between" }}
+              >
+                <span>
+                  Credit Balance :{" "}
+                  {api_key ? <span>N{"/"}A</span> : <span>{credits}</span>}{" "}
+                </span>
+
+                <Image src={assets.icons.icon_credits} alt="" width={20} />
+              </CreditsBtn>
+            </Tippy>
+          ) : null}
+        </Column>
+        <Column
+          style={{
+            padding: "1rem",
+            paddingBottom: 0,
+            width: "100%",
+          }}
+        >
+          {jwt && isLoggedIn ? (
+            <Tippy content="Check app settings" placement="right">
+              <SidebarBtn
+                onClick={
+                  jwt && isLoggedIn
+                    ? () => {
+                        open("showAppSettings");
+                        setTabID(1);
+                      }
+                    : () => {}
+                }
+              >
+                <Image src={assets.icons.icon_settings} alt="" width={15} />
+                <span>Settings</span>
+              </SidebarBtn>
+            </Tippy>
+          ) : null}
+
+          <SidebarBtn
+            id="how-to-use"
+            onClick={() =>
+              window.open(
+                "https://layer-e.gitbook.io/polygon-copilot-docs/",
+                "_blank"
+              )
+            }
+          >
+            <Image src={assets.logos.logo_layerE_circle} alt="" width={15} />{" "}
+            User Guide
+          </SidebarBtn>
+        </Column>
+      </SidebarFooter>
     </SidebarWrapper>
   );
 };
@@ -337,29 +325,6 @@ export const BtnImgWrapper = styled.div`
   border-radius: 8px;
 `;
 
-const SessionTitle = styled.p`
-  max-width: 70%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-`;
-const MobileNav = styled(Row)`
-  padding: 1rem;
-  background: ${({ theme }) => theme.bgSidebar};
-  justify-content: space-between;
-`;
-const SidebarDesktop = styled(Column)<{ hidebar: string }>`
-  height: 100%;
-  background: ${({ theme }) => theme.bgSidebar};
-  overflow: hidden;
-  ${(props) => props.theme.mediaWidth.upToMedium`   
-    transition: all .4s ease;
-     opacity:${props?.hidebar === "true" ? 1 : 0};
-  height:${props?.hidebar === "true" ? "100%" : "0px"};
-  `}
-  position: relative;
-  z-index: 999;
-`;
 const SidebarBtn = styled(Button)`
   display: flex;
 
@@ -409,7 +374,7 @@ const Tab = styled.button<{ isActive?: boolean }>`
       props?.isActive ? "rgba(255, 255, 255, 0.5)" : "none"};
   }
 `;
-const SidebarWrapper = styled(Column)<{ navheight: string }>`
+const SidebarWrapper = styled(Column)<{ showSidebar: boolean }>`
   --footer-height: 224px;
   max-width: 280px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
@@ -426,7 +391,8 @@ const SidebarWrapper = styled(Column)<{ navheight: string }>`
    left:0;
    border-radius:0;
    max-width:initial;
-   height:${props.navheight ?? "initial"};
+   transition:height .2s ease;
+   height:${props.showSidebar ? "100%" : 0};
    z-index:999;    
    border:0;
   `};

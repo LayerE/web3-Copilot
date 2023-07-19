@@ -23,6 +23,7 @@ import ShareSession from "@/components/Modal/ShareSession";
 import AppSettings from "@/components/AppSettings";
 import EarnCredits from "@/components/Modal/EarnCredits";
 import AgentTaskPannel from "@/components/AgentTaskPannel";
+import MobNav from "@/components/app/MobNav";
 const LayoutFrame = styled.div`
   display: flex;
   align-items: center;
@@ -33,9 +34,9 @@ const LayoutFrame = styled.div`
   overflow-y: auto;
   position: relative;
   z-index: 1;
-
   ${({ theme }) => theme.mediaWidth.upToMedium`
   min-height:100%;
+  padding-top: 4rem;
   `}
 `;
 const LayoutContentWrapper = styled.div`
@@ -175,6 +176,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       >
         {storeLoaded && (
           <LayoutFrame key={router.pathname}>
+            <MobNav />
             {(router.pathname === "/agent" || router.pathname === "/") && (
               <Sidebar />
             )}

@@ -22,11 +22,13 @@ export const BrandLogo = ({
               width: width,
               gap: ".35rem",
               alignItems: "center",
+              margin: "0 auto",
             }
           : {
               width: "100px",
               gap: ".35rem",
               alignItems: "center",
+              margin: "0 auto",
             }
       }
     >

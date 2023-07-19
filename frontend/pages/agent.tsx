@@ -124,6 +124,7 @@ const ChatWindowInnerWrapper = styled.div`
   ${({ theme }) => theme.mediaWidth.upToMedium`
     border-radius:0;
     border:0;  
+    padding-top: initial;
   `}
 `;
 

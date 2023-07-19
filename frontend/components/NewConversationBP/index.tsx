@@ -134,7 +134,6 @@ const NewConversationBP = () => {
           maxWidth: `${theme().ctrSizes.maxAppCtrWidth}`,
         }}
       >
-        <Header />
         <ResponsiveRow
           style={{
             justifyContent: "center",
