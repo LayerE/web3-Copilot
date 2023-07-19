@@ -25,6 +25,8 @@ type modals = {
   banner: boolean;
   shareSessionModal: boolean;
   showAppSettings: boolean;
+  showSidebar: boolean;
+  showTaskPannel: boolean;
 };
 export type modalPropChoices =
   | "signUpModal"
@@ -38,7 +40,9 @@ export type modalPropChoices =
   | "earlyBirdForm"
   | "banner"
   | "shareSessionModal"
-  | "showAppSettings";
+  | "showAppSettings"
+  | "showSidebar"
+  | "showTaskPannel";
 interface ContextITFC {
   showModal: modals;
   currentCMD: string;
@@ -71,6 +75,8 @@ export const AppContext = createContext<ContextITFC>({
     banner: false,
     shareSessionModal: false,
     showAppSettings: false,
+    showSidebar: false,
+    showTaskPannel: false,
   },
   tabID: 1,
   setTabID: () => {},
@@ -104,6 +110,8 @@ export const AppContextProvider = ({ children }: ContextProviderProps) => {
     banner: false,
     shareSessionModal: false,
     showAppSettings: false,
+    showSidebar: false,
+    showTaskPannel: false,
   });
   const [onboardingSteps, setOnboardingSteps] = useState([]);
   const [abortCurrentPrompt, setAbortCurrentPrompt] = useState(false);
@@ -138,16 +146,16 @@ export const AppContextProvider = ({ children }: ContextProviderProps) => {
   }, []);
   useEffect(() => {
     let stopSplash: any;
-    if(!window.localStorage.getItem('testsplashShown')){
-    if (!window.localStorage.getItem("splashShown")) {
-      window.localStorage.setItem("splashShown", "true");
-      stopSplash = window.setTimeout(() => setShowSplashScreen(false), 3000);
+    if (!window.localStorage.getItem("testsplashShown")) {
+      if (!window.localStorage.getItem("splashShown")) {
+        window.localStorage.setItem("splashShown", "true");
+        stopSplash = window.setTimeout(() => setShowSplashScreen(false), 3000);
+      } else {
+        stopSplash = window.setTimeout(() => setShowSplashScreen(false), 3000);
+      }
     } else {
-      stopSplash = window.setTimeout(() => setShowSplashScreen(false), 3000);
+      setShowSplashScreen(false);
     }
-  } else {
-    setShowSplashScreen(false);
-  }
     return () => {
       window.clearTimeout(stopSplash);
     };

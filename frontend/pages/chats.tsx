@@ -105,10 +105,10 @@ const Conversations = () => {
           <SkeletonLoader />
         </Column>
       )}
-      <ContinueBtn onClick={() => router.push(`/?chatID=${query["chat_id"]}`)}>
+      {/* <ContinueBtn onClick={() => router.push(`/?chatID=${query["chat_id"]}`)}>
         <PlayCircle size={15} />
         <span>Continue Conversation</span>
-      </ContinueBtn>
+      </ContinueBtn> */}
     </ConversationWrapper>
   );
 };

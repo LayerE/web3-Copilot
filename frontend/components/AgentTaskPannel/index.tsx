@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Column from "../common/Column";
-import { Book } from "react-feather";
+import { Book, XCircle } from "react-feather";
 import Row from "../common/Row";
 import Button from "../common/Button";
 import { Input } from "../common/Input";
@@ -9,12 +9,14 @@ import Image from "next/image";
 import assets from "@/public/assets";
 import { DisabledLabel } from "../common/Label";
 import { useChatStore } from "@/store";
+import { useAppState } from "@/context/app.context";
 
 const AgentTaskPannel = () => {
   const footerRef = useRef<HTMLDivElement>(null);
   const [taskTitle, setTaskTitle] = useState<string | null>(null);
   const [footerHeight, setHeight] = useState(224);
   const { currentSession, addTaskToCurrentGoal } = useChatStore();
+  const { showModal, close } = useAppState();
   const formRef = useRef<HTMLFormElement>(null);
   const addTask = (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,11 +34,25 @@ const AgentTaskPannel = () => {
       setHeight(footerRef?.current?.scrollHeight);
     }
   }, [footerRef?.current, footerHeight]);
+
   return (
-    <AgentTaskPannelWrapper>
-      <Row gap={".25rem"} style={{ padding: "1rem" }}>
-        <Book size={"1rem"} />
-        <p>Current Tasks</p>
+    <AgentTaskPannelWrapper showTaskPannel={showModal.showTaskPannel}>
+      <Row
+        gap={".25rem"}
+        style={{ padding: "1rem", justifyContent: "space-between" }}
+      >
+        <Row gap={".25rem"}>
+          <Book size={"1rem"} />
+          <p>Current Tasks</p>{" "}
+        </Row>
+        {showModal.showTaskPannel ? (
+          <Button
+            style={{ background: "none" }}
+            onClick={() => close("showTaskPannel")}
+          >
+            <XCircle />
+          </Button>
+        ) : null}
       </Row>
       <TasksCtr
         style={{
@@ -95,14 +111,22 @@ const AgentTaskPannel = () => {
               border: "none",
               borderRadius: ".5rem",
             }}
-            disabled={currentSession().goals.length === 0}
+            disabled={
+              currentSession().goals.length === 0 ||
+              !currentSession()?.goals?.slice(-1)[0]?.summary ||
+              currentSession()?.goals?.slice(-1)[0]?.streamingGoal
+            }
             onChange={(e) => setTaskTitle(e.target.value)}
             placeholder="Enter task..."
             required
           />
           <Button
             style={{ width: "100%", gap: ".5rem", padding: ".75rem" }}
-            disabled={currentSession().goals.length === 0}
+            disabled={
+              currentSession().goals.length === 0 ||
+              !currentSession()?.goals?.slice(-1)[0]?.summary ||
+              currentSession()?.goals?.slice(-1)[0]?.streamingGoal
+            }
           >
             <Image src={assets.icons.icon_task_add} alt="add_task" />
             <span>Add Task</span>
@@ -158,7 +182,7 @@ const TasksFooter = styled(Column)`
     gap: 0.5rem;
   }
 `;
-const AgentTaskPannelWrapper = styled(Column)`
+const AgentTaskPannelWrapper = styled(Column)<{ showTaskPannel: boolean }>`
   height: 100%;
   max-width: 280px;
   overflow: hidden;
@@ -167,5 +191,16 @@ const AgentTaskPannelWrapper = styled(Column)`
   z-index: 10;
   overflow-y: auto;
   position: relative;
+  ${(props) => props.theme.mediaWidth.upToMedium` 
+   position:fixed;
+   top:0;
+   left:0;
+   border-radius:0;
+   max-width:initial;
+   transition:height .2s ease;
+   height:${props.showTaskPannel ? "100%" : 0};
+   z-index:999;    
+   border:0;
+  `};
 `;
 export default AgentTaskPannel;

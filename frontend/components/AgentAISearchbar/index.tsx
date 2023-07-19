@@ -153,14 +153,20 @@ const AgentAISearchbar = ({
             onKeyDown={handleTextAreaKeyDown}
             wrap="soft"
             disabled={
-              credits < 1 && api_key?.length === 0 && isLoggedIn && jwt
+              (credits < 1 && api_key?.length === 0 && isLoggedIn && jwt) ||
+              currentSession().goals.length === 0 ||
+              !currentSession()?.goals?.slice(-1)[0]?.summary ||
+              currentSession()?.goals?.slice(-1)[0]?.streamingGoal
                 ? true
                 : false
             }
           />
           <SearchBtn
             disabled={
-              credits === 0 && api_key?.length === 0 && isLoggedIn && jwt
+              (credits < 1 && api_key?.length === 0 && isLoggedIn && jwt) ||
+              currentSession().goals.length === 0 ||
+              !currentSession()?.goals?.slice(-1)[0]?.summary ||
+              currentSession()?.goals?.slice(-1)[0]?.streamingGoal
                 ? true
                 : false
             }

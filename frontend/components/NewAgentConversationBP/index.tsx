@@ -36,7 +36,6 @@ const NewAgentAI = () => {
           maxWidth: `${theme().ctrSizes.maxAppCtrWidth}`,
         }}
       >
-        <Header />
         <ResponsiveRow
           style={{
             justifyContent: "flex-start",
@@ -156,6 +155,9 @@ const AppTitle = styled.h2`
     border-radius: 0.5rem;
     background: linear-gradient(180deg, #8a46ff 0%, #6e38cc 100%);
   }
+  ${(props) => props.theme.mediaWidth.upToMedium`
+    justify-content:center;
+  `}
 `;
 const Goals = styled.div`
   display: flex;
@@ -212,12 +214,12 @@ const NewAgentAIWrapper = styled(Column)`
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  padding: 1rem;
-  padding-top: 4rem;
+  padding: 4rem 1rem;
   background: rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+
   position: relative;
 `;
 

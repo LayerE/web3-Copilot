@@ -47,7 +47,10 @@ const AgentAIPage = () => {
       animate="animate"
       ref={resultPageRef}
     >
-      <ChatWindowWrapper ref={chatWrapperRef}>
+      <ChatWindowWrapper
+        ref={chatWrapperRef}
+        hidePadding={currentSession()?.goals?.length > 0 ? false : true}
+      >
         {currentSession()?.goals?.length === 0 ? (
           <NewAgentAI />
         ) : (
@@ -68,11 +71,13 @@ const AgentAIPage = () => {
           </>
         )}
       </ChatWindowWrapper>
-      <ShowMedium>
-        <SearchbarWrapper className="tour_search_mob">
-          <AgentAISearchbar ddDirection="up" />{" "}
-        </SearchbarWrapper>
-      </ShowMedium>
+      {currentSession()?.goals?.length > 0 && (
+        <ShowMedium>
+          <SearchbarWrapper className="tour_search_mob">
+            <AgentAISearchbar ddDirection="up" />{" "}
+          </SearchbarWrapper>
+        </ShowMedium>
+      )}
     </AgentAIPageWrapper>
   );
 };
@@ -124,10 +129,11 @@ const ChatWindowInnerWrapper = styled.div`
   ${({ theme }) => theme.mediaWidth.upToMedium`
     border-radius:0;
     border:0;  
+    padding-top: initial;
   `}
 `;
 
-const ChatWindowWrapper = styled(Column)`
+const ChatWindowWrapper = styled(Column)<{ hidePadding: boolean }>`
   height: 100%;
   overflow: hidden;
   overflow-y: auto;
@@ -140,13 +146,13 @@ const ChatWindowWrapper = styled(Column)`
   /* Hide scrollbar for IE, Edge add Firefox */
   -ms-overflow-style: none;
   scrollbar-width: none; /* Firefox */
-  ${({ theme }) => theme.mediaWidth.upToMedium`
+  ${({ theme, hidePadding }) => theme.mediaWidth.upToMedium`
     flex-grow:1;
     padding:0;
     border-radius:0;
     gap: 0.5rem;
-    margin-top:3.5rem;
-    margin-bottom:3.5rem;
+    margin-top:${hidePadding ? "initial" : "3.5rem"};
+    margin-bottom:${hidePadding ? "initial" : "3.5rem"};
   `}
 `;
 const AgentAIPageWrapper = styled(PageWrapper)`
