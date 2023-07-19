@@ -51,7 +51,7 @@ const NewAgentAI = () => {
             <AppTitle>
               <span>AI Agent</span>
             </AppTitle>
-            <DisabledLabel>
+            <DisabledLabel style={{ textAlign: "center" }}>
               Wormhole theme, Excess blue and black, visible sidebar.
             </DisabledLabel>
           </Column>
