@@ -17,7 +17,6 @@ const StyledButton = styled.button<{ bg?: string }>`
   justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-
   border: 0;
   color: #ffffff;
   background: ${(props) => props.bg ?? "transparent"};
@@ -25,7 +24,7 @@ const StyledButton = styled.button<{ bg?: string }>`
   font-family: var(--ff-subtitle);
   border-radius: 0.25rem;
   transition: 200ms ease;
-  width: fit-content;
+  min-width: fit-content;
   &:hover {
     opacity: 0.7;
   }
