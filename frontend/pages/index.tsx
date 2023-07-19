@@ -107,7 +107,9 @@ const Results = () => {
   //   } else {
   //     //SESSION ALREADY EXISTS
   //     const _session = sessions?.find(
-  //       (session) => session.continuedSessionID === continueSessionID
+  //       (session) =>
+  //         session.continuedSessionID === continueSessionID &&
+  //         session.service === "copilot"
   //     );
   //     if (_session) selectSession(_session?.id);
   //   }

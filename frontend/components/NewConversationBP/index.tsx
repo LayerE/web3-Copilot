@@ -152,7 +152,7 @@ const NewConversationBP = () => {
             <AppTitle>
               <span>Collectible Relationship Management</span>
             </AppTitle>
-            <DisabledLabel>
+            <DisabledLabel style={{ textAlign: "center" }}>
               Wormhole theme, Excess blue and black, visible sidebar, improper
               point system.
             </DisabledLabel>
