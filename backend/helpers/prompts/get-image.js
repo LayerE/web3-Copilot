@@ -1,5 +1,13 @@
 import Replicate from "replicate";
+import { Configuration, OpenAIApi } from "openai";
+import { config } from "dotenv";
+import { encoding_for_model } from "@dqbd/tiktoken";
 
+config();
+
+const { OPENAI_API_KEY } = process.env;
+
+const encoding = encoding_for_model("gpt-4");
 export default async function getImage(message) {
   try {
     const replicate = new Replicate({
@@ -17,6 +25,21 @@ export default async function getImage(message) {
       message: `Here is an image of ${message} return the image as markdown or html.`,
       image: output,
     };
+
+    // const configuration = new Configuration({
+    //   apiKey: OPENAI_API_KEY,
+    // });
+    // const openai = new OpenAIApi(configuration);
+    // const response = await openai.createImage({
+    //   prompt: message,
+    //   n: 1,
+    //   size: "512x512",
+    // });
+
+    // return {
+    //   message: `Here is an image of ${message} return the image as markdown or html.`,
+    //   image: response?.data?.data[0]?.url,
+    // };
   } catch (error) {
     console.log(error);
     return {

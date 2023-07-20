@@ -15,9 +15,9 @@ export default async function ImageGenSummarizer(data, goal, apiKey, model) {
     });
     const openai = new OpenAIApi(configuration);
     const prompt = ` 
-    Here is the Image you've requested for the ${goal} task:
+    Here is the Image you've requested for the task
     ${JSON.stringify(data)}
-    return as image 
+    return as image, don't describe the image or process, just answer the question.
     `;
 
     console.log(
