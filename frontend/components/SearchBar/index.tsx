@@ -626,7 +626,7 @@ const CMD = styled.span`
   margin-top: auto;
   position: absolute;
   bottom: 0.5rem;
-  left: 0.5rem;
+  left: 0.35rem;
 `;
 const Hints = styled(Column)`
   padding: 1rem;
