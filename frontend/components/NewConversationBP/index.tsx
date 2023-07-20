@@ -15,6 +15,15 @@ import Header from "../Header";
 import Button from "../common/Button";
 import { DisabledLabel } from "../common/Label";
 
+/*
+EXAMPLE_PROMPT Types
+ "stats" | "learn" | "mint" | "faucet" | "tokens"
+*/
+/*Personas Types
+1. dev -> Advanced
+2. new_dev -> Beginner
+3. validator -> Degen
+*/
 const examplePromptsData = {
   dev: {
     prompts: [
