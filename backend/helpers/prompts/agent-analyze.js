@@ -54,7 +54,8 @@ export default async function (goal, apiKey, model, task) {
     },
     {
       name: "dappRadar",
-      description: "Get top dapps by volume, users, and transactions",
+      description:
+        "Get top dapps by volume, users, and transactions on Ethereum and Polygon",
       args: "none",
     },
     {
@@ -66,6 +67,12 @@ export default async function (goal, apiKey, model, task) {
       name: "image_gen",
       description: "Used to sketch, draw, or generate an image.",
       args: "The input prompt to the image generator.This should be a detailed description of the image touching on image style, image focus, color, etc.",
+    },
+    {
+      name: "defi_swap",
+      description:
+        "Get the quote for swapping tokens (e.g. ETH to DAI) the token names are case sensitive",
+      args: "token1, token2, amount",
     },
   ];
 

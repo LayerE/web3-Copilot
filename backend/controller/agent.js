@@ -13,6 +13,7 @@ import {
   getImage,
   ImageGenSummarizer,
   agentCode,
+  getDefiSwap,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
 
@@ -166,6 +167,16 @@ const AgentAnalyze = async (req, res) => {
         case "image_gen":
           const data = await getImage(tasks?.args?.arg ?? task);
           toolData = { type: "image", data: data };
+          break;
+        case "defi_swap":
+          const split = tasks?.args?.arg?.split(",");
+          console.log(split);
+          const defiSwap = await getDefiSwap(
+            split[0]?.trim(),
+            split[1]?.trim(),
+            split[2]?.trim()
+          );
+          toolData = { type: "defi-swap", data: defiSwap };
           break;
         default:
           toolData = { type: "web", data: tasks?.args };
