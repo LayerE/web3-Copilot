@@ -15,51 +15,60 @@ import Header from "../Header";
 import Button from "../common/Button";
 import { DisabledLabel } from "../common/Label";
 
+/*
+EXAMPLE_PROMPT Types
+ "stats" | "learn" | "mint" | "faucet" | "tokens"
+*/
+/*Personas Types
+1. dev -> Advanced
+2. new_dev -> Beginner
+3. validator -> Degen
+*/
 const examplePromptsData = {
   dev: {
     prompts: [
       {
-        txt: "How do I start building on zkEVM?",
+        txt: "Give me the code for a Soulbound ERC 721 contract",
         type: "learn",
       },
       {
-        txt: "Give me a smart contract code to deploy for a ERC 721",
-        type: "learn",
+        txt: "top tokens based on marketcap",
+        type: "tokens",
       },
       {
-        txt: "Guide to becoming a Polygon validator",
-        type: "learn",
+        txt: "Mint me a ERC 1155 NFT",
+        type: "mint",
       },
     ],
   },
   new_dev: {
     prompts: [
       {
-        txt: "How do I learn to develop on Polygon?",
+        txt: "How do I get started with developing on web3?",
         type: "learn",
       },
       {
-        txt: "How do I begin my journey on Polygon?",
+        txt: "What are the chains i should focus building on?",
         type: "learn",
       },
       {
-        txt: "What is Polygon ID? How is it useful?",
-        type: "learn",
+        txt: "top NFT collections on Polygon",
+        type: "stats",
       },
     ],
   },
   validator: {
     prompts: [
       {
-        txt: "Give me some details on Polygon Supernets",
+        txt: "top collections based on volume ser?",
+        type: "stats",
+      },
+      {
+        txt: "what is the noise with zeroknowledge?",
         type: "learn",
       },
       {
-        txt: "What's up with zkevm ser?",
-        type: "learn",
-      },
-      {
-        txt: "How do I go flexing my Polygon NFTs?",
+        txt: "The art of being a Degen",
         type: "learn",
       },
     ],
@@ -137,28 +146,20 @@ const NewConversationBP = () => {
         <ResponsiveRow
           style={{
             justifyContent: "center",
-            gap: "1rem",
+            gap: ".5rem",
           }}
         >
-          <Image src={assets.logos.logo_new_copilot} alt="" />
-          <Column
-            style={{
-              justifyContent: "center",
-              alignItems: "center",
-              textAlign: "center",
-              width: "fit-content",
-            }}
-          >
+          <Image src={assets.logos.logo_layerE_circle} alt="" width={80} />
+          <TitleWrapper>
             <AppTitle>
-              <span>Collectible Relationship Management</span>
+              <span>Web3 Copilot</span>
             </AppTitle>
             <DisabledLabel style={{ textAlign: "center" }}>
-              Wormhole theme, Excess blue and black, visible sidebar, improper
-              point system.
+              Making Web3 conversational, accessible, and simple to use.
             </DisabledLabel>
-          </Column>
+          </TitleWrapper>
         </ResponsiveRow>
-        {/* <PersonasWrapper ref={node} className="tour_personas">
+        <PersonasWrapper ref={node} className="tour_personas">
           {Personas?.map((persona, idx) => (
             <Tippy
               key={idx}
@@ -180,7 +181,7 @@ const NewConversationBP = () => {
               </Persona>
             </Tippy>
           ))}
-        </PersonasWrapper> */}
+        </PersonasWrapper>
         <PromptExamples minWidth={270} className="tour_prompting">
           {
             //@ts-ignore
@@ -194,6 +195,11 @@ const NewConversationBP = () => {
               >
                 <p className="_prompt_description">{_prompt.txt}</p>
                 <Button className="_prompt_btn">
+                  {_prompt.type !== "learn" && (
+                    <span
+                      style={{ padding: "0 .25rem" }}
+                    >{`/${_prompt.type}`}</span>
+                  )}
                   <ArrowRight size={".8rem"} />
                 </Button>
               </PromptCard>
@@ -205,6 +211,15 @@ const NewConversationBP = () => {
   );
 };
 
+const TitleWrapper = styled(Column)`
+  justify-content: center;
+  align-items: flex-start;
+  text-align: center;
+  width: fit-content;
+  ${({ theme }) => theme.mediaWidth.upToMedium`
+  align-items: center;
+  `}
+`;
 const HeaderWrapper = styled(Row)`
   width: 100%;
   position: absolute;
@@ -319,7 +334,7 @@ const AppTitle = styled.h2`
 const PromptCard = styled(Column)`
   position: relative;
   padding: 1rem;
-  height: 100%;
+  flex-grow: 1;
   border-radius: 0.5rem;
   background: ${(props) => props.theme.bgCard};
   gap: 1rem;
@@ -327,7 +342,7 @@ const PromptCard = styled(Column)`
   transition: 0.2s ease;
   position: relative;
   border: 1px solid ${({ theme }) => theme.stroke};
-  padding-bottom: 3rem;
+  height: 140px;
   cursor: pointer;
   &:hover {
     background: ${({ theme }) => theme.bgBody};
@@ -343,14 +358,14 @@ const PromptCard = styled(Column)`
     gap: 0.5rem;
     color: #fff;
     font-family: var(--ff-subtitle);
-    width: 25px;
-    height: 25px;
+    min-width: 25px;
+    min-height: 25px;
     overflow: hidden;
     padding: 0.15rem 0.35rem;
-    border-radius: 100%;
+    border-radius: 2rem;
   }
   ${({ theme }) => theme.mediaWidth.upToMedium`
-  height:auto;
+  height:120px;
   font-size:.9rem;
   `}
 `;

@@ -63,7 +63,8 @@ export const ResponsiveRowWrap = styled(Row)`
 export const GridAutoWrap = styled(Row)<{ minWidth?: number }>`
   display: grid;
   grid-template-columns: ${({ minWidth }) =>
-    `repeat(auto-fit, minmax(${minWidth ?? 300}px, 1fr))`};
+    `repeat(auto-fill, minmax(${minWidth ?? 300}px, 1fr))`};
+  align-items: stretch;
   gap: 1rem;
 `;
 export default Row;
