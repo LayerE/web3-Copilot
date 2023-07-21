@@ -107,7 +107,7 @@ const AgentAnalyze = async (req, res) => {
           toolData = { type: "dapp-radar", data: dappRadar };
           break;
         case "NFT_Insights":
-          const nftAnalytics = await getNFTAnalytics(task);
+          const nftAnalytics = await getNFTAnalytics(tasks?.args?.arg || task);
           toolData = { type: "nft-analytics", data: nftAnalytics };
           break;
         case "top_eth_collections":

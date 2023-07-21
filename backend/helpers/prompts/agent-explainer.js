@@ -26,8 +26,7 @@ export default async function (
         You're data explainer AI called AgentGPT. You are not a part of any system or device.
         Here is the data you've collected for the ${task} task:
         ${JSON.stringify(data)}
-        Summarize the data. even if it is not relevant to the task.
-        The goal is: ${goal} it not to be too accurate with the goal, but relevant to the task.
+        Be as clear, informative, and descriptive as necessary and attempt to answer the query: ${task}as best as possible.
         ${previous.length > 0 ? `Previous summary: ${previous}` : ""}
         Don't describe the code or process, just answer the question.
     `;

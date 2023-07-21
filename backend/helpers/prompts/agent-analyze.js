@@ -35,7 +35,7 @@ export default async function (goal, apiKey, model, task) {
     {
       name: "NFT_Insights",
       description: "Get Top Collections, Top NFTs,Top NFTs Sold, Defi data",
-      args: "query related to nft",
+      args: "query for NFT insights like what is the top collection, top nft,defi  etc.",
     },
     {
       name: "top_nfts_collections",

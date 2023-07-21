@@ -47,7 +47,8 @@ import getImage from "./prompts/get-image.js";
 import ImageGenSummarizer from "./prompts/agent-image-summarizer.js";
 import agentCode from "./prompts/agent-code.js";
 import getDefiSwap from "./api/defi-swap.js";
-
+import agentSwap from "./prompts/agent-swap.js";
+agentSwap;
 export {
   polygonWikiParser,
   getSource,

@@ -1,10 +1,8 @@
 import {
   getSearchResults,
   getChatResponse,
-  getSource,
   validateSearchResults,
   createQuery,
-  getSuggestions,
   getNFTAnalytics,
   getDataExplain,
   getMessageType,
@@ -14,17 +12,15 @@ import {
   getSiteMetadata,
   getDappDetails,
   decrementTokens,
-  recordAnalyticsAndWriteConversation,
   tokenStats,
   getToken,
-  agentExplainer,
   tokenSummarizer,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
-import restrictedKeywords from "../helpers/handlers/restrictedKeywords.js";
 
 import { v4 as uuidv4 } from "uuid";
-
+import { streamHandler } from "../helpers/handlers/streamHandler.js";
+import errorHandler from "../helpers/handlers/errorHandler.js";
 const ChatController = async (req, res) => {
   try {
     const {
@@ -38,8 +34,6 @@ const ChatController = async (req, res) => {
       debug,
       isRegenerated,
     } = req.body;
-    console.log(contract);
-    // Generate a unique ID for the request to store analytics data
     const id = uuidv4();
     let { conversationId, answer: ans, model } = req.body;
     ans = ans || "";
@@ -47,37 +41,24 @@ const ChatController = async (req, res) => {
       model && model?.model_id === 2
         ? "gpt-4"
         : "gpt-3.5-turbo" || "gpt-3.5-turbo";
-    console.log(model);
     conversationId = conversationId || uuidv4();
+    if (!message || !persona || !history) errorHandler(400, "Bad request", res);
+    if (message?.length > 1024) errorHandler(400, "Message too long", res);
 
-    if (!message || !persona || !history) {
-      return res.status(400).json({ message: "Bad request" });
-    }
-    if (message?.length > 1024)
-      return res.status(400).json({ message: "Message too long" });
+    if (persona !== "new_dev" && persona !== "dev" && persona !== "validator")
+      errorHandler(400, "Invalid persona", res);
 
-    if (persona !== "new_dev" && persona !== "dev" && persona !== "validator") {
-      return res.status(400).json({ message: "Invalid persona" });
-    }
-    console.log("Request data:", {
-      message,
-      persona,
-      history,
-      debug,
-    });
     if (wallet && !apiKey) {
       await decrementTokens(wallet, model);
     }
 
-    if (!debug) {
-      res.writeHead(200, {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache, no-transform",
-        Connection: "keep-alive",
-        "Transfer-Encoding": "chunked",
-      });
-      sendData({ id: id, conversationId }, res);
-    }
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "Transfer-Encoding": "chunked",
+    });
+    sendData({ id: id, conversationId }, res);
 
     const filter = !contract
       ? await getMessageType(message, history, apiKey ?? false)
@@ -85,22 +66,15 @@ const ChatController = async (req, res) => {
 
     let type = filter[1];
     const query = filter[0];
-    console.log("Message type:", type);
-    if (!debug) {
-      sendData({ type: type }, res);
-    }
+
+    sendData({ type: type }, res);
 
     console.log("Generating search query from conversation history");
-    if (!debug && type !== "web") {
+    if (type !== "web") {
       sendData({ queries: ["Message type is not web. Skipping search"] }, res);
     }
     let data = [];
-    if (
-      type === "personal" ||
-      type === "code" ||
-      type === "contract" ||
-      type === "irrelevant"
-    ) {
+    if (["personal", "code", "contract", "irrelevant"].includes(type)) {
       data = [message];
     } else if (type === "website") {
       data = await getSiteMetadata(filter[0] ?? message);
@@ -115,8 +89,6 @@ const ChatController = async (req, res) => {
         message
       );
       if (q) {
-        console.log("Search query:", q);
-        // remove " from the query to avoid error"
         q = message;
         if (!debug) {
           sendData({ queries: [q] }, res);
@@ -132,16 +104,12 @@ const ChatController = async (req, res) => {
     } else if (type === "surfaceboard") {
       data = await getNFTAnalytics(message, wallet, apiKey ?? false);
       if (!data || data?.error) {
-        return res
-          .status(400)
-          .json({ message: data?.error || "Invalid response" });
+        errorHandler(400, "Invalid response", res);
       }
       if (data.dataJSON === "false") {
         type = "web";
       }
-      console.log(data);
     }
-
     let availableTypes = [
       "personal",
       "code",
@@ -153,8 +121,6 @@ const ChatController = async (req, res) => {
       "irrelevant",
     ];
     let messageType = availableTypes.includes(type) ? type : "web";
-
-    // debug mode to get the response in block instead of stream
     const chat =
       type === "contract"
         ? await getContractCode(
@@ -183,95 +149,26 @@ const ChatController = async (req, res) => {
             debug ?? false,
             type === "surfaceboard" ? "gpt-4" : model
           );
-    if (!chat) {
-      return res.status(503).json({ message: "Something went wrong." });
-    }
+    if (!chat) errorHandler(400, "Invalid response", res);
 
-    if (debug) {
-      console.log("Request completed");
-      return res.status(200).json({
-        id: id,
-        data: chat,
-        debug: true,
-      });
-    }
-
-    let answer = "";
-    chat.on("data", (chunk) => {
-      const lines = chunk
-        .toString()
-        .split("\n")
-        .filter((line) => line.trim() !== "");
-
-      for (const line of lines) {
-        const mes = line.replace(/^data: /, "");
-        if (mes === "[DONE]") {
-          console.log("Answer generated. Getting source links and suggestions");
-          sendData({ completed: true }, res);
-          console.log(answer);
-          Promise.all([
-            type === "web" && isFooter !== "false" && type !== "contract"
-              ? getSource(data, message, apiKey ?? false, model)
-              : type === "dapp-radar"
-              ? ["https://dappradar.com/"]
-              : [],
-            type !== "personal" && isFooter !== "false" && type !== "contract"
-              ? getSuggestions(
-                  history,
-                  answer,
-                  apiKey ?? false,
-                  "gpt-3.5-turbo"
-                )
-              : [],
-          ]).then(async ([source, suggestions]) => {
-            let code = false;
-            if (type === "contract" && answer?.includes("```")) {
-              // get the ``` from the response
-              code = answer?.match(/```([^]*)```/)[1];
-              console.log(code);
-            }
-            res.write(
-              `data: ${JSON.stringify({
-                source,
-                suggestions,
-                id,
-                conversationId,
-                showButton:
-                  type === "contract" && answer?.includes("```") ? true : false,
-                sourceCode: code ? code : false,
-              })}\n\n`
-            );
-            res.end();
-            //moved analytics after response for faster response time.
-            /* Store analytics data */
-            await recordAnalyticsAndWriteConversation(
-              id,
-              wallet,
-              message,
-              answer,
-              apiKey,
-              model,
-              conversationId,
-              persona,
-              isRegenerated,
-              isFooter,
-              type
-            );
-            console.log("Request completed");
-          });
-        } else {
-          const parsed = JSON?.parse(mes);
-          const content = parsed.choices[0].delta.content;
-          if (content) {
-            sendData(content, res);
-            answer += content;
-          }
-        }
-      }
-    });
+    streamHandler(
+      res,
+      chat,
+      id,
+      conversationId,
+      type,
+      message,
+      data,
+      history,
+      persona,
+      apiKey,
+      model,
+      isRegenerated,
+      isFooter,
+      wallet
+    );
   } catch (error) {
-    console.log(error);
-    res.status(503).json({ message: "Something went wrong." });
+    errorHandler(500, "Internal server error", res);
   }
 };
 
@@ -287,13 +184,8 @@ const NFTStatsController = async (req, res) => {
       persona,
     } = req.body;
 
-    if (!message || !history) {
-      return res.status(400).json({ message: "Bad request" });
-    }
-    if (message?.length > 1024)
-      return res.status(400).json({ message: "Message too long" });
-
-    // Generate a unique ID for the request to store analytics data
+    if (!message || !history) errorHandler(400, "Bad request", res);
+    if (message?.length > 1024) errorHandler(400, "Message too long", res);
     const id = uuidv4();
     let { conversationId, model } = req.body;
     model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo";
@@ -302,14 +194,8 @@ const NFTStatsController = async (req, res) => {
 
     const data = await getNFTAnalytics(message, wallet, apiKey || false);
 
-    if (!data) {
-      return res.status(400).json({ message: "Invalid response" });
-    }
-
-    if (data.error) {
-      return res.status(400).json({ message: data.error });
-    }
-
+    if (!data) errorHandler(400, "Invalid response", res);
+    if (data?.error) errorHandler(400, data?.error, res);
     const streamData = await getDataExplain(
       message,
       data.dataJSON,
@@ -318,9 +204,7 @@ const NFTStatsController = async (req, res) => {
       model
     );
 
-    if (!streamData) {
-      return res.status(400).json({ message: "Invalid response" });
-    }
+    if (!streamData) errorHandler(400, "Invalid response", res);
 
     if (wallet && !apiKey) {
       await decrementTokens(wallet, model);
@@ -333,58 +217,25 @@ const NFTStatsController = async (req, res) => {
       "Transfer-Encoding": "chunked",
     });
     sendData({ id: id }, res);
-    let answer = "";
 
-    streamData.on("data", async (chunk) => {
-      const lines = chunk
-        .toString()
-        .split("\n")
-        .filter((line) => line.trim() !== "");
-
-      for (const line of lines) {
-        const mes = line.replace(/^data: /, "");
-
-        if (mes === "[DONE]") {
-          sendData("", res);
-          res.write(
-            `data: ${JSON.stringify({
-              source: [],
-              suggestions: [],
-              id,
-              conversationId,
-            })}\n\n`
-          );
-          res.end();
-
-          await recordAnalyticsAndWriteConversation(
-            id,
-            wallet,
-            message,
-            answer,
-            apiKey,
-            model,
-            conversationId,
-            "stats",
-            isRegenerated,
-            isFooter,
-            persona
-          );
-
-          console.log("Request completed");
-        } else {
-          const parsed = JSON.parse(mes);
-          const content = parsed.choices[0].delta.content;
-
-          if (content) {
-            sendData(content, res);
-            answer += content;
-          }
-        }
-      }
-    });
+    streamHandler(
+      res,
+      streamData,
+      id,
+      conversationId,
+      "surfaceboard",
+      message,
+      data,
+      history,
+      persona,
+      apiKey,
+      model,
+      isRegenerated,
+      isFooter,
+      wallet
+    );
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal server error" });
+    errorHandler(500, "Internal server error", res);
   }
 };
 
@@ -399,12 +250,8 @@ const MintNFTController = async (req, res) => {
       isFooter,
       persona,
     } = req.body;
-    if (!message || !history) {
-      return res.status(400).json({ message: "Bad request" });
-    }
-    if (message?.length > 1024)
-      return res.status(400).json({ message: "Message too long" });
-    // Generate a unique ID for the request to store analytics data
+    if (!message || !history) errorHandler(400, "Bad request", res);
+    if (message?.length > 1024) errorHandler(400, "Message too long", res);
     const id = uuidv4();
     let { conversationId, model } = req.body;
     conversationId = conversationId || uuidv4();
@@ -413,10 +260,8 @@ const MintNFTController = async (req, res) => {
         ? "gpt-4"
         : "gpt-3.5-turbo" || "gpt-3.5-turbo";
     const data = await MintNFT(message, history, apiKey ?? false);
-    if (!data) return res.status(400).json({ message: "Invalid response" });
-    if (data?.error) {
-      return res.status(400).json({ message: data.error });
-    }
+    if (!data) errorHandler(400, "Invalid response", res);
+    if (data?.error) errorHandler(400, data?.error, res);
     if (wallet && !apiKey) {
       await decrementTokens(wallet, model);
     }
@@ -427,65 +272,26 @@ const MintNFTController = async (req, res) => {
       "Transfer-Encoding": "chunked",
     });
     sendData({ id: id }, res);
-    let answer = "";
-    data.on("data", async (chunk) => {
-      const lines = chunk
-        .toString()
-        .split("\n")
-        .filter((line) => line.trim() !== "");
 
-      for (const line of lines) {
-        const mes = line.replace(/^data: /, "");
-        if (mes === "[DONE]") {
-          let json = false;
-          if (answer?.includes("```")) {
-            json = answer?.match(/```([^]*)```/)[1];
-            if (json.startsWith("json")) {
-              json = json.replace("json", "");
-            }
-            console.log(json);
-          }
-          sendData("", res);
-          res.write(
-            `data: ${JSON.stringify({
-              source: [],
-              suggestions: [],
-              id,
-              conversationId,
-              showButton: json ? true : false,
-              sourceCode: json ? json : false,
-            })}\n\n`
-          );
-          res.end();
-
-          await recordAnalyticsAndWriteConversation(
-            id,
-            wallet,
-            message,
-            answer,
-            apiKey,
-            model,
-            conversationId,
-            "mintNFT",
-            isRegenerated,
-            isFooter,
-            persona
-          );
-
-          console.log("Request completed");
-        } else {
-          const parsed = JSON.parse(mes);
-          const content = parsed.choices[0].delta.content;
-          if (content) {
-            sendData(content, res);
-            answer += content;
-          }
-        }
-      }
-    });
+    streamHandler(
+      res,
+      data,
+      id,
+      conversationId,
+      "mintNFT",
+      message,
+      data,
+      history,
+      persona,
+      apiKey,
+      model,
+      isRegenerated,
+      isFooter,
+      wallet,
+      true
+    );
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal server error" });
+    errorHandler(500, "Internal server error", res);
   }
 };
 
@@ -501,13 +307,8 @@ const AirdropController = async (req, res) => {
       persona,
     } = req.body;
 
-    if (!message || !history) {
-      return res.status(400).json({ message: "Bad request" });
-    }
-    if (message?.length > 1024)
-      return res.status(400).json({ message: "Message too long" });
-
-    // Generate a unique ID for the request to store analytics data
+    if (!message || !history) errorHandler(400, "Bad request", res);
+    if (message?.length > 1024) errorHandler(400, "Message too long", res);
     const id = uuidv4();
     let { conversationId, model } = req.body;
     model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo";
@@ -522,14 +323,8 @@ const AirdropController = async (req, res) => {
       maxRetries--;
     }
 
-    if (!data) {
-      return res.status(400).json({ message: "Invalid response" });
-    }
-
-    console.log(data);
+    if (!data) errorHandler(400, "Invalid response", res);
     const apiFetch = await getToken(data.tool);
-    console.log(apiFetch);
-
     const streamData = await tokenSummarizer(
       apiFetch,
       message,
@@ -539,9 +334,7 @@ const AirdropController = async (req, res) => {
       model
     );
 
-    if (!streamData) {
-      return res.status(400).json({ message: "Invalid response" });
-    }
+    if (!streamData) errorHandler(400, "Invalid response", res);
 
     if (wallet && !apiKey) {
       await decrementTokens(wallet, model);
@@ -554,62 +347,24 @@ const AirdropController = async (req, res) => {
       "Transfer-Encoding": "chunked",
     });
     sendData({ id: id }, res);
-    let answer = "";
-
-    streamData.on("data", async (chunk) => {
-      const lines = chunk
-        .toString()
-        .split("\n")
-        .filter((line) => line.trim() !== "");
-
-      for (const line of lines) {
-        const mes = line.replace(/^data: /, "");
-
-        if (mes === "[DONE]") {
-          sendData("", res);
-          res.write(
-            `data: ${JSON.stringify({
-              source: [],
-              suggestions: [],
-              id,
-              conversationId,
-            })}\n\n`
-          );
-          res.end();
-
-          await recordAnalyticsAndWriteConversation(
-            id,
-            wallet,
-            message,
-            answer,
-            apiKey,
-            model,
-            conversationId,
-            "tokenStats",
-            isRegenerated,
-            isFooter,
-            persona
-          );
-
-          console.log("Request completed");
-        } else {
-          try {
-            const parsed = JSON?.parse(mes);
-            const content = parsed.choices[0].delta.content;
-
-            if (content) {
-              sendData(content, res);
-              answer += content;
-            }
-          } catch (error) {
-            console.log("Error in parsing JSON");
-          }
-        }
-      }
-    });
+    streamHandler(
+      res,
+      streamData,
+      id,
+      conversationId,
+      "airdrop",
+      message,
+      data,
+      history,
+      persona,
+      apiKey,
+      model,
+      isRegenerated,
+      isFooter,
+      wallet
+    );
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Internal server error" });
+    errorHandler(500, "Internal server error", res);
   }
 };
 
