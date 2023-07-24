@@ -6,12 +6,13 @@ const selectedSites = [
   "https://docs.alchemy.com/",
   "https://docs.infura.io/",
   "https://docs.chain.link/",
+  "https://www.investopedia.com/",
 ];
 export default async function (url) {
   const urlFetch = await fetch(url);
   let htmlText = await urlFetch.text();
 
-  if (selectedSites.includes(url)) {
+  if (url?.includes(selectedSites.some((site) => url.includes(site)))) {
     const $ = load(htmlText);
     $("footer").remove();
     $("header").remove();

@@ -77,7 +77,7 @@ export default async function (q) {
             let markdown = "";
             try {
               markdown = await redisClient.get(link);
-              // console.log(`Fetched ${link} from cache`);
+              console.log(`Fetched ${link} from cache`);
             } catch (e) {
               console.log(e);
               console.log(`Fetching ${link} from cache failed.`);
@@ -114,22 +114,21 @@ export default async function (q) {
               // ).remove();
 
               // markdown = turndownService.turndown($.html());
-            
 
               console.log("Scraping site data");
               const siteData = await getSiteData(link);
               markdown = siteData;
               console.log("Scraping site data done", siteData?.length);
 
-              // try {
-              //   await redisClient.set(link, markdown, {
-              //     EX: 60 * 60 * 24,
-              //   });
-              //   console.log(`Cached ${link} for 24 hours`);
-              // } catch (e) {
-              //   console.log(e);
-              //   console.log("Caching scraped data failed.");
-              // }
+              try {
+                await redisClient.set(link, markdown, {
+                  EX: 60 * 60 * 24,
+                });
+                console.log(`Cached ${link} for 24 hours`);
+              } catch (e) {
+                console.log(e);
+                console.log("Caching scraped data failed.");
+              }
             }
 
             // const markdown = $.text(); // Reduces Token noticeably. But not good for formatting & Removes links.
