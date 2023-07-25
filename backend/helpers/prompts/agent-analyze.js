@@ -74,6 +74,31 @@ export default async function (goal, apiKey, model, task) {
         "Get the quote for swapping tokens (e.g. ETH to DAI) the token names are case sensitive",
       args: "token1, token2, amount",
     },
+    {
+      name: "potential_airdrops",
+      description: "Get information about potential airdrops",
+      args: "none",
+    },
+    {
+      name: "latest_airdrops",
+      description: "Get information about latest airdrops",
+      args: "none",
+    },
+    {
+      name: "hottest_airdrops",
+      description: "Get information about hottest airdrops",
+      args: "none",
+    },
+    {
+      name: "token_insights",
+      description: "Get Token Prices",
+      args: "none",
+    },
+    {
+      name: "token_listings",
+      description: "Get Token Listings",
+      args: "none",
+    },
   ];
 
   try {

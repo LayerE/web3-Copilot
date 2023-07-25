@@ -14,6 +14,7 @@ import {
   ImageGenSummarizer,
   agentCode,
   getDefiSwap,
+  getToken,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
 
@@ -177,6 +178,14 @@ const AgentAnalyze = async (req, res) => {
             split[2]?.trim()
           );
           toolData = { type: "defi-swap", data: defiSwap };
+          break;
+        case "potential_airdrops":
+        case "latest_airdrops":
+        case "hottest_airdrops":
+        case "token_insights":
+        case "token_listings":
+          const apiFetch = await getToken(tasks?.tool);
+          toolData = { type: "tokens", data: apiFetch };
           break;
         default:
           toolData = { type: "web", data: tasks?.args };
