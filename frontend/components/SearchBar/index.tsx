@@ -152,7 +152,18 @@ const SearchBar = ({
     jwt,
     isLoggedIn,
     hasSiteAccess,
-  } = useChatStore();
+  } = useChatStore((state) => ({
+    onNewPrompt: state.onNewPrompt,
+    credits: state.credits,
+    api_key: state.api_key,
+    currentSession: state.currentSession,
+    selectSession: state.selectSession,
+    newSession: state.newSession,
+    sessions: state.sessions,
+    jwt: state.jwt,
+    isLoggedIn: state.isLoggedIn,
+    hasSiteAccess: state.hasSiteAccess,
+  }));
   const { address, isConnected } = useAccount();
   const { setCMD, currentCMD, examplePrompt, open: _open } = useAppState();
   const { open } = useWeb3Modal();

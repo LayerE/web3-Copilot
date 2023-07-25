@@ -17,7 +17,11 @@ const scrollToBottomWithSmoothScroll = (ref: any) => {
   // ref.current.scrollTop = ref?.current?.scrollHeight;
 };
 const AgentAIPage = () => {
-  const { currentSession, selectSession, sessions } = useChatStore();
+  const { currentSession, selectSession, sessions } = useChatStore((state) => ({
+    currentSession: state.currentSession,
+    selectSession: state.selectSession,
+    sessions: state.sessions,
+  }));
   const chatWindowRef = useRef<HTMLDivElement>(null);
   const chatWrapperRef = useRef<HTMLDivElement>(null);
   const resultPageRef = useRef<HTMLDivElement>(null);
@@ -40,6 +44,7 @@ const AgentAIPage = () => {
     chatWrapperRef?.current?.scrollHeight,
     resultPageRef?.current?.scrollHeight,
   ]);
+  console.log("current session", currentSession());
   return (
     <AgentAIPageWrapper
       variants={fadeInPage}

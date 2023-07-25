@@ -39,7 +39,10 @@ const ReadmoreTxtWrapper = styled.p`
 const GoalPage: FC<{
   goal: Goal;
 }> = ({ goal }) => {
-  const { generateGoalSummary, currentSession } = useChatStore();
+  const { generateGoalSummary, currentSession } = useChatStore((state) => ({
+    generateGoalSummary: state.generateGoalSummary,
+    currentSession: state.currentSession,
+  }));
   const summarizeTask = () => {
     const allTaskContent = goal.tasks.map((task) => task.content);
     generateGoalSummary(goal, allTaskContent, currentSession().id);

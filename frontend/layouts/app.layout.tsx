@@ -48,7 +48,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const storeLoaded = useHasHydrated();
   const { close, open, showModal } = useAppState();
-  const { api_key, selectSession, sessions } = useChatStore();
+  const api_key = useChatStore((state) => state.jwt);
   const { isConnected } = useAccount({
     onConnect({ address, connector, isReconnected }) {
       callLogin(address);

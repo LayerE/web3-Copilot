@@ -108,14 +108,14 @@ export const PolygonBetaLogo = () => (
 );
 const NewConversationBP = () => {
   const { setExamplePrompt, open } = useAppState();
-  const {
-    currentSession,
-    updateSessionType,
-    credits,
-    api_key,
-    isLoggedIn,
-    creditStatus,
-  } = useChatStore();
+  const { currentSession, updateSessionType, credits, api_key, isLoggedIn } =
+    useChatStore((state) => ({
+      currentSession: state.currentSession,
+      updateSessionType: state.updateSessionType,
+      credits: state.credits,
+      api_key: state.api_key,
+      isLoggedIn: state.isLoggedIn,
+    }));
   const [selectedPersona, setSelectedPerson] = useState("new_dev");
   const [showPersonasList, setShowPersonasList] = useState(false);
   const { setIsOpen } = useTour();
