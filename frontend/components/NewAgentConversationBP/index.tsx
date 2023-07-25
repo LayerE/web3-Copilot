@@ -13,7 +13,10 @@ import { Input } from "../common/Input";
 import { useChatStore } from "@/store";
 
 const NewAgentAI = () => {
-  const { addSessionGoal, currentSession } = useChatStore();
+  const { addSessionGoal, currentSession } = useChatStore((state) => ({
+    addSessionGoal: state.addSessionGoal,
+    currentSession: state.currentSession,
+  }));
   const formRef = useRef<HTMLFormElement>(null);
   const goalInputRef = useRef<HTMLTextAreaElement>(null);
   const agentInputRef = useRef<HTMLInputElement>(null);
@@ -42,14 +45,14 @@ const NewAgentAI = () => {
             gap: "1rem",
           }}
         >
-          <Image src={assets.logos.logo_agentAI} alt="" width={70} />
+          <Image src={assets.logos.logo_layerE_circle} alt="" width={70} />
           <Column
             style={{
               width: "fit-content",
             }}
           >
             <AppTitle>
-              <span>AI Agent</span>
+              <span>Web3 Agents</span>
             </AppTitle>
             <DisabledLabel style={{ textAlign: "center" }}>
               Wormhole theme, Excess blue and black, visible sidebar.

@@ -20,15 +20,22 @@ const Results = () => {
     currentSession,
     isLoggedIn,
     abortPrompt,
-    api_key,
     sessions,
     onRegeneratePrompt,
-    continueSession,
     jwt,
     selectSession,
     credits,
-  } = useChatStore();
-  const { showModal, open, setTabID } = useAppState();
+  } = useChatStore((state) => ({
+    currentSession: state.currentSession,
+    selectSession: state.selectSession,
+    sessions: state.sessions,
+    isLoggedIn: state.isLoggedIn,
+    abortPrompt: state.abortPrompt,
+    credits: state.credits,
+    onRegeneratePrompt: state.onRegeneratePrompt,
+    jwt: state.jwt,
+  }));
+  const { open, setTabID } = useAppState();
   const session = currentSession(); //with smooth-scroll
   const chatWindowRef = useRef<HTMLDivElement>(null);
   const chatWrapperRef = useRef<HTMLDivElement>(null);
@@ -37,7 +44,6 @@ const Results = () => {
   const router = useRouter();
   const [chatWindowScrollHeight, setChatWindowScrollHeight] = useState(0);
   const [chatWindowHeight, setChatWindowHeight] = useState(0);
-  console.log("current session", currentSession());
 
   const scrollToBottomWithSmoothScroll = (ref: any) => {
     ref.current.scrollTo({

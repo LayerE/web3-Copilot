@@ -12,16 +12,12 @@ import Column from "../common/Column";
 import { useChatStore } from "@/store/app";
 import Session from "../Session";
 import { BrandLogo } from "../app/Header";
-import { TEXT } from "@/theme/texts";
 import Row from "../common/Row";
-import { HideMedium, ShowMedium } from "../common/MdQryBlock";
 import { useAppState } from "@/context/app.context";
-import { ConnectWalletButton } from "../ConnectWalletBtn";
 import assets from "@/public/assets";
 import Image from "next/image";
-import { isMacintosh } from "@/utils/common";
 import Tippy from "@tippyjs/react";
-import { useTour } from "@reactour/tour";
+
 import { colors } from "@/theme/colors";
 import { useRouter } from "next/router";
 
@@ -36,7 +32,17 @@ const Sidebar = ({ onChangeTab }: { onChangeTab?: () => void }) => {
     credits,
     jwt,
     api_key,
-  } = useChatStore();
+  } = useChatStore((state) => ({
+    sessions: state.sessions,
+    newSession: state.newSession,
+    removeSession: state.removeSession,
+    selectSession: state.selectSession,
+    currentSession: state.currentSession,
+    isLoggedIn: state.isLoggedIn,
+    credits: state.credits,
+    jwt: state.jwt,
+    api_key: state.api_key,
+  }));
 
   const router = useRouter();
   const [historyNav, setHistoryNav] = useState({ recent: true, fvrts: false });

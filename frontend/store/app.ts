@@ -14,7 +14,7 @@ export enum SubmitKey {
   MetaEnter = "Meta + Enter",
 }
 
-export const BE_URL = "https://layere-copilot.up.railway.app"
+export const BE_URL = "https://layere-copilot.up.railway.app";
 
 export interface Prompt {
   id?: number | string;
@@ -205,31 +205,35 @@ export const useChatStore = create<ChatStore>()(
           session.goals.push(new_goal);
         });
         try {
-          const res = await axios.post(BE_URL + "/agent/task", {
-            goal: goal_title,
-            name: agent_name ?? nanoid(),
-            model: get().gptModel ?? null,
-            id: session_id,
-          }, {
-            headers: {
-              "Content-Type": "application/json",
-              authorization: get().jwt ?? null,
-              "api-key": get().api_key ?? null,
+          const res = await axios.post(
+            BE_URL + "/agent/task",
+            {
+              goal: goal_title,
+              name: agent_name ?? nanoid(),
+              model: get().gptModel ?? null,
+              id: session_id,
             },
-          });
+            {
+              headers: {
+                "Content-Type": "application/json",
+                authorization: get().jwt ?? null,
+                "api-key": get().api_key ?? null,
+              },
+            }
+          );
           if (res.status === 200) {
             get().updateSessionData(session_id, (session) => {
               session.topic = goal_title;
 
               let tasks = res.data.tasks.map(
                 (task: string) =>
-                ({
-                  id: nanoid(),
-                  title: task,
-                  content: null,
-                  streamingTask: false,
-                  taskFullyLoaded: false,
-                } as Task)
+                  ({
+                    id: nanoid(),
+                    title: task,
+                    content: null,
+                    streamingTask: false,
+                    taskFullyLoaded: false,
+                  } as Task)
               );
               if (tasks.length > 0) {
                 let goal: Goal = {
@@ -279,7 +283,7 @@ export const useChatStore = create<ChatStore>()(
               results: results,
               name: nanoid(),
               model: get().gptModel ?? null,
-            },),
+            }),
             openWhenHidden: true,
             async onopen(response) {
               if (response.status === 429) {
@@ -422,12 +426,14 @@ export const useChatStore = create<ChatStore>()(
         });
       },
       updateSessionData(sessionID, updater) {
-        const sessions = get().sessions;
-        const session = sessions.filter(
-          (session) => session.id === sessionID
-        )[0];
-        updater(session);
-        set(() => ({ sessions }));
+        set((state) => {
+          const sessions = [...state.sessions];
+          const session = sessions.find((session) => session.id === sessionID);
+          if (session) {
+            updater(session);
+            return { sessions: sessions };
+          } else return { sessions: [...state.sessions] };
+        });
       },
       likeSession: (sessionID: any, liked: boolean) => {
         get().updateSessionData(sessionID, (session) => {
@@ -547,12 +553,16 @@ export const useChatStore = create<ChatStore>()(
         }));
       },
       updateCurrentSession(updater) {
-        const sessions = get().sessions;
-        const session = get().sessions.find(
-          (session) => session.id === get().currentSessionID
-        );
-        if (session) updater(session);
-        set(() => ({ sessions }));
+        set((state) => {
+          const sessions = [...state.sessions];
+          const session = sessions.find(
+            (session) => session.id === state.currentSessionID
+          );
+          if (session) {
+            updater(session);
+            return { sessions: sessions };
+          } else return { sessions: [...state.sessions] };
+        });
       },
       updateSessionType(type: PERSONA_TYPES) {
         get().updateCurrentSession((session) => {
@@ -736,11 +746,11 @@ export const useChatStore = create<ChatStore>()(
                 });
               } else {
                 data?.data?.id ||
-                  data?.data?.completed ||
-                  data?.data?.conversationId ||
-                  data?.data?.type ||
-                  data?.data?.queries ||
-                  data?.data?.links
+                data?.data?.completed ||
+                data?.data?.conversationId ||
+                data?.data?.type ||
+                data?.data?.queries ||
+                data?.data?.links
                   ? dataEvent.push("")
                   : dataEvent.push(data?.data);
                 prompt.content = dataEvent.join("");
@@ -848,12 +858,12 @@ export const useChatStore = create<ChatStore>()(
                   if (_prompt.id === prompt.id) {
                     _prompt.content =
                       get().isLoggedIn &&
-                        get().jwt !== "" &&
-                        get()?.credits <= 0
+                      get().jwt !== "" &&
+                      get()?.credits <= 0
                         ? "All credits used up! Come back tomorrow for more credits."
                         : get()?.credits <= 0
-                          ? "You have no credits left. Please Connect your wallet to get more credits."
-                          : "Error fetching response";
+                        ? "You have no credits left. Please Connect your wallet to get more credits."
+                        : "Error fetching response";
                     _prompt.streaming = false;
                   }
                   return _prompt;
@@ -866,8 +876,8 @@ export const useChatStore = create<ChatStore>()(
           get().isLoggedIn && get().jwt !== "" && get()?.credits <= 0
             ? "All credits used up! Come back tomorrow for more credits."
             : get()?.credits <= 0
-              ? "You have no credits left. Please Connect your wallet to get more credits."
-              : "Error fetching response";
+            ? "You have no credits left. Please Connect your wallet to get more credits."
+            : "Error fetching response";
           return error;
         }
       },
