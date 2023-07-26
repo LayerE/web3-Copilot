@@ -54,20 +54,15 @@ export async function streamHandler(
         sendData({ completed: true }, res);
         Promise.all([
           isFooter === "false" || isMint
-            ? ([], [])
-            : (type === "web" && isFooter !== "false" && type !== "contract"
-                ? getSource(data, message, apiKey ?? false, model)
-                : type === "dapp-radar"
-                ? ["https://dappradar.com/"]
-                : [],
-              type !== "personal" && isFooter !== "false" && type !== "contract"
-                ? getSuggestions(
-                    history,
-                    answer,
-                    apiKey ?? false,
-                    "gpt-3.5-turbo"
-                  )
-                : []),
+            ? Promise.resolve([])
+            : type === "web" && isFooter !== "false" && type !== "contract"
+            ? getSource(data, message, apiKey ?? false, model)
+            : type === "dapp-radar"
+            ? Promise.resolve(["https://dappradar.com/"])
+            : Promise.resolve([]),
+          type !== "personal" && isFooter !== "false" && type !== "contract"
+            ? getSuggestions(history, answer, apiKey ?? false, "gpt-3.5-turbo")
+            : Promise.resolve([]),
         ]).then(async ([source, suggestions]) => {
           if (isMint) {
             let json = false;
