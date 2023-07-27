@@ -15,7 +15,8 @@ export default async function (
   previous,
   apiKey,
   debug,
-  model
+  model,
+  type
 ) {
   try {
     const configuration = new Configuration({
@@ -25,10 +26,19 @@ export default async function (
     const prompt = ` 
         You're data explainer AI called AgentGPT. You are not a part of any system or device.
         Here is the data you've collected for the ${task} task:
-        ${JSON.stringify(data)}
-        Be as clear, informative, and descriptive as necessary and attempt to answer the query: ${task}as best as possible.
+        Data: ${JSON.stringify(data)}
+      
+        ${
+          type === "token_listings" &&
+          "Consider the 24_hour_change for all the historial data changes and metrics so just say the 24_hour_change and summarize the data according to the goal and task."
+        }
+
+        ${
+          type === "nft-analytics" &&
+          "Stick to the goal and task and summarize the data according to the goal and task. No need to describe the data or process."
+        }
+
         ${previous.length > 0 ? `Previous summary: ${previous}` : ""}
-        Don't describe the code or process, just answer the question.
     `;
 
     console.log(

@@ -28,12 +28,7 @@ const AgentTasks = async (req, res) => {
     if (!goal || !name)
       return res.status(400).json({ message: "Invalid request" });
     const id = req.body.id || uuidv4();
-    const tasks = await agentStart(
-      goal,
-      apiKey ?? false,
-      "gpt-3.5-turbo",
-      name
-    );
+    const tasks = await agentStart(goal, apiKey ?? false, model, name);
     if (!tasks) return res.status(400).json({ message: "Invalid request" });
     await recordAnalyticsAndWriteConversation(
       id,
@@ -69,7 +64,7 @@ const AgentAnalyze = async (req, res) => {
       "gpt-3.5-turbo",
       task
     );
-    let maxRetries = 5;
+    let maxRetries = 10;
     while (!tasks && maxRetries > 0) {
       tasks = await agentAnalyze(goal, apiKey ?? false, "gpt-3.5-turbo", task);
       maxRetries--;
@@ -107,8 +102,14 @@ const AgentAnalyze = async (req, res) => {
           const dappRadar = await getDappDetails(task);
           toolData = { type: "dapp-radar", data: dappRadar };
           break;
-        case "NFT_Insights":
-          const nftAnalytics = await getNFTAnalytics(tasks?.args?.arg || task);
+        case "Defi_Insights":
+          const nftAnalytics = await getNFTAnalytics(
+            ["/defi?type=" + tasks?.args?.arg || "yieldPools"],
+            wallet ?? false,
+            apiKey ?? false,
+            false,
+            true
+          );
           toolData = { type: "nft-analytics", data: nftAnalytics };
           break;
         case "top_eth_collections":
@@ -134,6 +135,16 @@ const AgentAnalyze = async (req, res) => {
             true
           );
           toolData = { type: "nft-analytics", data: topNFTsCollections };
+          break;
+        case "top_eth_nft_sales":
+          const topEthNFTSales = await getNFTAnalytics(
+            ["/eth/sales"],
+            wallet ?? false,
+            apiKey ?? false,
+            false,
+            true
+          );
+          toolData = { type: "nft-analytics", data: topEthNFTSales };
           break;
         case "top_polygon_collections":
           const topPolygonCollections = await getNFTAnalytics(
@@ -206,7 +217,7 @@ const AgentAnalyze = async (req, res) => {
             )
           : toolData?.type === "code"
           ? await agentCode(
-              toolData?.data,
+              task,
               goal,
               req.body.answer ?? false,
               apiKey ?? false,
@@ -219,7 +230,8 @@ const AgentAnalyze = async (req, res) => {
               req.body.answer ?? false,
               apiKey ?? false,
               false,
-              model
+              model,
+              toolData?.type
             );
       if (!chat) return res.status(400).json({ message: "Invalid request" });
       res.writeHead(200, {

@@ -10,6 +10,7 @@ export default async function (goal, apiKey, model, message) {
       apiKey: apiKey || OPENAI_API_KEY,
     });
     const openai = new OpenAIApi(configuration);
+
     const prompt = `You are a task creation AI called AgentGPT. You are not a part of any system or device. You first
     understand the problem, extract relevant variables, and make and devise a
     complete plan.You have the following objective ${goal}. Create a list of step

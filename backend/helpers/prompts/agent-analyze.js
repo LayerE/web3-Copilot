@@ -33,9 +33,10 @@ export default async function (goal, apiKey, model, task) {
       args: "collection name",
     },
     {
-      name: "NFT_Insights",
-      description: "Get Top Collections, Top NFTs,Top NFTs Sold, Defi data",
-      args: "query for NFT insights like what is the top collection, top nft,defi,yield pools etc.",
+      name: "Defi_Insights",
+      description:
+        "Get Defi data like top yield pools, top defi projects, etc.",
+      args: "add the type that should be in chainTVL or tvl or dexVolume or yieldPools or gasPrice",
     },
     {
       name: "top_nfts_collections",
@@ -45,6 +46,11 @@ export default async function (goal, apiKey, model, task) {
     {
       name: "top_eth_collections",
       description: "Get Top NFTs Collections on Ethereum",
+      args: "none",
+    },
+    {
+      name: "top_eth_nft_sales",
+      description: "Get Top NFTs Sales on Ethereum",
       args: "none",
     },
     {
@@ -91,12 +97,14 @@ export default async function (goal, apiKey, model, task) {
     },
     {
       name: "token_insights",
-      description: "Get Token Prices",
+      description:
+        "It is used to get the Token Price at the moment like matic, eth, etc.",
       args: "none",
     },
     {
       name: "token_listings",
-      description: "Get Token Listings",
+      description:
+        "It is used to get the Token Listings which includes market cap, price, volume, etc.",
       args: "none",
     },
   ];
