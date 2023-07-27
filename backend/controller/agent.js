@@ -62,7 +62,7 @@ const AgentAnalyze = async (req, res) => {
     if (!id) id = uuidv4();
     if (!goal || !task)
       return res.status(400).json({ message: "Invalid request" });
-    model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo";
+    model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo-16k";
     let tasks = await agentAnalyze(
       goal,
       apiKey ?? false,

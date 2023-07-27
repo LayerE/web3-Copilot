@@ -22,7 +22,7 @@ export default async function getImage(message) {
     });
     console.log(output);
     return {
-      message: `Here is an image of ${message} return the image as markdown or html.`,
+      message: `Here is an image of ${message} return the image as markdown.`,
       image: output,
     };
 
