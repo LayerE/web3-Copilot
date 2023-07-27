@@ -9,7 +9,7 @@ export default async function (goal, apiKey, model, task) {
     {
       name: "Search",
       description: "Search for a query on Google",
-      args: "query for search related to web3, crypto, nft, defi, blockchain, ethereum, bitcoin, etc.",
+      args: "query for search related to web3, web3 projects, crypto, nft, defi, blockchain, ethereum, bitcoin, etc.",
     },
     {
       name: "wallet_transactions",
@@ -35,7 +35,7 @@ export default async function (goal, apiKey, model, task) {
     {
       name: "NFT_Insights",
       description: "Get Top Collections, Top NFTs,Top NFTs Sold, Defi data",
-      args: "query for NFT insights like what is the top collection, top nft,defi  etc.",
+      args: "query for NFT insights like what is the top collection, top nft,defi,yield pools etc.",
     },
     {
       name: "top_nfts_collections",
@@ -55,7 +55,7 @@ export default async function (goal, apiKey, model, task) {
     {
       name: "dappRadar",
       description:
-        "Get top dapps by volume, users, and transactions on Ethereum and Polygon",
+        "Get top dapps by volume, users, and transactions on Ethereum and Polygon for staking, gaming, defi, etc.",
       args: "none",
     },
     {
