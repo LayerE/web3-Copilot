@@ -8,16 +8,18 @@ import { Input } from "../common/Input";
 import Image from "next/image";
 import assets from "@/public/assets";
 import { DisabledLabel } from "../common/Label";
-import { useChatStore } from "@/store";
+import { BE_URL, useChatStore } from "@/store";
 import { useAppState } from "@/context/app.context";
+import axios from "axios";
 
 const AgentTaskPannel = () => {
   const footerRef = useRef<HTMLDivElement>(null);
   const [taskTitle, setTaskTitle] = useState<string | null>(null);
   const [footerHeight, setHeight] = useState(224);
   const { currentSession, addTaskToCurrentGoal } = useChatStore();
-  const { showModal, close } = useAppState();
+  const { showModal, open, close } = useAppState();
   const formRef = useRef<HTMLFormElement>(null);
+
   const addTask = (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     let sessionID = currentSession().id;
@@ -132,6 +134,14 @@ const AgentTaskPannel = () => {
             <span>Add Task</span>
           </Button>
         </form>
+        <Button
+          style={{ width: "100%", gap: ".5rem", padding: ".75rem" }}
+          onClick={() => {
+            open("toolsModal");
+          }}
+        >
+          Tools
+        </Button>
       </TasksFooter>
     </AgentTaskPannelWrapper>
   );
