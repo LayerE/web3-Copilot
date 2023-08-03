@@ -41,6 +41,7 @@ import {
   BulkGenerateMetadata,
   AirdropController,
   AgentSummarizer,
+  AgentTools,
 } from "./controller/index.js";
 
 import { connectDB } from "./config/database.js";
@@ -124,6 +125,7 @@ app.post("/api-key/check", async (req, res) => {
 app.post("/agent/task", isAuth, AgentTasks);
 app.post("/agent/analyze", isAuth, AgentAnalyze);
 app.post("/agent/summarize", isAuth, AgentSummarizer);
+app.get("/agent/tools", AgentTools);
 
 app.post("/compile", async (req, res) => {
   try {

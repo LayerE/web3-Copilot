@@ -1,3 +1,4 @@
+import { tools } from "../helpers/handlers/agentTools.js";
 import {
   getSearchResults,
   validateSearchResults,
@@ -53,20 +54,29 @@ const AgentTasks = async (req, res) => {
 const AgentAnalyze = async (req, res) => {
   try {
     const { goal, task, apiKey, wallet } = req.body;
-    let { id, model } = req.body;
+    let { id, model, tools } = req.body;
     if (!id) id = uuidv4();
     if (!goal || !task)
       return res.status(400).json({ message: "Invalid request" });
     model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo-16k";
+
     let tasks = await agentAnalyze(
       goal,
       apiKey ?? false,
       "gpt-3.5-turbo",
-      task
+      task,
+      tools?.length > 0 ? tools : false
     );
+
     let maxRetries = 10;
     while (!tasks && maxRetries > 0) {
-      tasks = await agentAnalyze(goal, apiKey ?? false, "gpt-3.5-turbo", task);
+      tasks = await agentAnalyze(
+        goal,
+        apiKey ?? false,
+        "gpt-3.5-turbo",
+        task,
+        tools?.length > 0 ? tools : false
+      );
       maxRetries--;
     }
     if (maxRetries === 0) {
@@ -371,4 +381,17 @@ const AgentSummarizer = async (req, res) => {
   }
 };
 
-export { AgentAnalyze, AgentTasks, AgentSummarizer };
+const AgentTools = async (req, res) => {
+  try {
+    const availableTools = await tools.filter(
+      (tool, index, self) =>
+        index === self.findIndex((t) => t.toolName === tool.toolName)
+    );
+    return res.status(200).json({ availableTools });
+  } catch (error) {
+    console.log(error);
+    res.status(503).json({ message: "Something went wrong." });
+  }
+};
+
+export { AgentAnalyze, AgentTasks, AgentSummarizer, AgentTools };

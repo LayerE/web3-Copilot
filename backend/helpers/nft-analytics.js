@@ -77,7 +77,7 @@ const getNFTAnalytics = async (
 const getWalletAnalytics = async (message, walletAddress, type) => {
   try {
     // remove ' or " from walletAddress
-    walletAddress = walletAddress.replace(/['"]+/g, "");
+    walletAddress = walletAddress?.replace(/['"]+/g, "") || walletAddress;
     if (!walletAddress) return { dataJSON: "false", duration: "false" };
     switch (type) {
       case "wallet_transactions":

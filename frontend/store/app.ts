@@ -47,6 +47,8 @@ export type Task = {
   streamingTask?: boolean;
   taskFullyLoaded?: boolean;
 };
+
+
 export interface Goal {
   id: number | string;
   title: string;
@@ -92,6 +94,8 @@ function createEmptySession(
   };
 }
 
+
+
 interface ChatStore {
   gptModel: any;
   hasSiteAccess: boolean;
@@ -104,6 +108,10 @@ interface ChatStore {
   isLoggedIn: boolean;
   jwt: string;
   showSources: boolean;
+  agents: string[];
+  setAgents: (
+    agents: string[],
+  ) => void;
   addSessionGoal: (
     goal_title: string,
     session_id: string,
@@ -118,7 +126,8 @@ interface ChatStore {
     task: Task,
     goal: Goal,
     sessionID: string,
-    prevTaskContent?: any
+    prevTaskContent?: any,
+    agents?: string[]
   ) => void;
   generateGoalSummary: (goal: Goal, results: any[], sessionID: string) => void;
   continueSession: (conversationID: string) => void;
@@ -184,6 +193,12 @@ export const useChatStore = create<ChatStore>()(
       user: {},
       isLoggedIn: false,
       showSources: true,
+      agents: [],
+      setAgents: (agents: string[]) => {
+        set({
+          agents: agents,
+        });
+      },
       setGPTModel: (model: any) => {
         set({
           gptModel: model,
@@ -227,13 +242,13 @@ export const useChatStore = create<ChatStore>()(
 
               let tasks = res.data.tasks.map(
                 (task: string) =>
-                  ({
-                    id: nanoid(),
-                    title: task,
-                    content: null,
-                    streamingTask: false,
-                    taskFullyLoaded: false,
-                  } as Task)
+                ({
+                  id: nanoid(),
+                  title: task,
+                  content: null,
+                  streamingTask: false,
+                  taskFullyLoaded: false,
+                } as Task)
               );
               if (tasks.length > 0) {
                 let goal: Goal = {
@@ -251,7 +266,8 @@ export const useChatStore = create<ChatStore>()(
                 new_goal.tasks[i],
                 new_goal,
                 session_id,
-                prevTask?.content ?? null
+                prevTask?.content ?? null,
+                get().agents,
               );
             }
           }
@@ -746,11 +762,11 @@ export const useChatStore = create<ChatStore>()(
                 });
               } else {
                 data?.data?.id ||
-                data?.data?.completed ||
-                data?.data?.conversationId ||
-                data?.data?.type ||
-                data?.data?.queries ||
-                data?.data?.links
+                  data?.data?.completed ||
+                  data?.data?.conversationId ||
+                  data?.data?.type ||
+                  data?.data?.queries ||
+                  data?.data?.links
                   ? dataEvent.push("")
                   : dataEvent.push(data?.data);
                 prompt.content = dataEvent.join("");
@@ -858,12 +874,12 @@ export const useChatStore = create<ChatStore>()(
                   if (_prompt.id === prompt.id) {
                     _prompt.content =
                       get().isLoggedIn &&
-                      get().jwt !== "" &&
-                      get()?.credits <= 0
+                        get().jwt !== "" &&
+                        get()?.credits <= 0
                         ? "All credits used up! Come back tomorrow for more credits."
                         : get()?.credits <= 0
-                        ? "You have no credits left. Please Connect your wallet to get more credits."
-                        : "Error fetching response";
+                          ? "You have no credits left. Please Connect your wallet to get more credits."
+                          : "Error fetching response";
                     _prompt.streaming = false;
                   }
                   return _prompt;
@@ -876,12 +892,12 @@ export const useChatStore = create<ChatStore>()(
           get().isLoggedIn && get().jwt !== "" && get()?.credits <= 0
             ? "All credits used up! Come back tomorrow for more credits."
             : get()?.credits <= 0
-            ? "You have no credits left. Please Connect your wallet to get more credits."
-            : "Error fetching response";
+              ? "You have no credits left. Please Connect your wallet to get more credits."
+              : "Error fetching response";
           return error;
         }
       },
-      responseAgentTask: async (task, goal, sessionID, prevTaskContent) => {
+      responseAgentTask: async (task, goal, sessionID, prevTaskContent, agents) => {
         try {
           let dataEvent: any = [];
           await fetchEventSource(`${BE_URL}/agent/analyze`, {
@@ -898,6 +914,7 @@ export const useChatStore = create<ChatStore>()(
               id: sessionID,
               answer: prevTaskContent,
               model: get().gptModel ?? null,
+              tools: agents || get().agents,
             }),
             openWhenHidden: true,
             async onopen(response) {

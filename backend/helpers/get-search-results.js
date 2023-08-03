@@ -58,18 +58,6 @@ export default async function (q) {
       });
     }
 
-    let regex1 = /pol/gi;
-    if (regex1.test(q)) {
-      console.log("Adding $pol blog to search results");
-      response.items.unshift({
-        kind: "customsearch#result",
-        title: "Polygon 2.0: The Internet of Blockchains",
-        link: "https://polygon.technology/blog/polygon-2-0-tokenomics",
-        htmlTitle: "<b>Polygon</b> 2.0: The Internet of Blockchains",
-        htmlSnippet: "Polygon 2.0: The Internet of Blockchains",
-      });
-    }
-
     response =
       response.items &&
       response.items.map(({ title, link }) => {

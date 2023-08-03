@@ -27,6 +27,7 @@ type modals = {
   showAppSettings: boolean;
   showSidebar: boolean;
   showTaskPannel: boolean;
+  toolsModal: boolean;
 };
 export type modalPropChoices =
   | "signUpModal"
@@ -42,7 +43,8 @@ export type modalPropChoices =
   | "shareSessionModal"
   | "showAppSettings"
   | "showSidebar"
-  | "showTaskPannel";
+  | "showTaskPannel"
+  | "toolsModal";
 interface ContextITFC {
   showModal: modals;
   currentCMD: string;
@@ -77,6 +79,7 @@ export const AppContext = createContext<ContextITFC>({
     showAppSettings: false,
     showSidebar: false,
     showTaskPannel: false,
+    toolsModal: false,
   },
   tabID: 1,
   setTabID: () => {},
@@ -112,6 +115,7 @@ export const AppContextProvider = ({ children }: ContextProviderProps) => {
     showAppSettings: false,
     showSidebar: false,
     showTaskPannel: false,
+    toolsModal: false,
   });
   const [onboardingSteps, setOnboardingSteps] = useState([]);
   const [abortCurrentPrompt, setAbortCurrentPrompt] = useState(false);

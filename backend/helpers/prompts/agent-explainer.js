@@ -27,7 +27,10 @@ export default async function (
         You're data explainer AI called AgentGPT. You are not a part of any system or device.
         Here is the data you've collected for the ${task} task:
         Data: ${JSON.stringify(data)}
-      
+        ${
+          type === "wallet-analytics" &&
+          `Explain with whatever data is available for the wallet. If there is no data for a specific metric, just say that there is no data for that metric.`
+        }
         ${
           type === "token_listings" &&
           "Consider the 24_hour_change for all the historial data changes and metrics so just say the 24_hour_change and summarize the data according to the goal and task."

@@ -23,6 +23,7 @@ import ShareSession from "@/components/Modal/ShareSession";
 import AppSettings from "@/components/AppSettings";
 import EarnCredits from "@/components/Modal/EarnCredits";
 import AgentTaskPannel from "@/components/AgentTaskPannel";
+import ToolsModal from "@/components/Modal/ToolsModal";
 import MobNav from "@/components/app/MobNav";
 const LayoutFrame = styled.div`
   display: flex;
@@ -197,6 +198,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             {showModal.earlyBirdForm ? <EarlyBirdForm /> : null}
             {showModal.shareSessionModal ? <ShareSession /> : null}{" "}
             {showModal.showAppSettings ? <AppSettings /> : null}
+            {showModal.toolsModal ? <ToolsModal /> : null}
           </LayoutFrame>
         )}
       </AnimatePresence>
