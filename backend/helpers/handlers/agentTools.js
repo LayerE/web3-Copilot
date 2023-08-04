@@ -107,14 +107,14 @@ const tools = [
     args: "none",
   },
   {
-    toolName: "Airdrops",
+    toolName: "Tokens",
     name: "token_insights",
     description:
       "It is used to get the Token Price at the moment like matic, eth, etc.",
     args: "none",
   },
   {
-    toolName: "Airdrops",
+    toolName: "Tokens",
     name: "token_listings",
     description:
       "It is used to get the Token Listings which includes market cap, price, volume, etc.",
