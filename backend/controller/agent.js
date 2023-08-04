@@ -29,7 +29,12 @@ const AgentTasks = async (req, res) => {
     if (!goal || !name)
       return res.status(400).json({ message: "Invalid request" });
     const id = req.body.id || uuidv4();
-    const tasks = await agentStart(goal, apiKey ?? false, model, name);
+    let maxRetries = 5;
+    let tasks = await agentStart(goal, apiKey ?? false, model, name);
+    while (!tasks && maxRetries > 0) {
+      tasks = await agentStart(goal, apiKey ?? false, model, name);
+      maxRetries--;
+    }
     if (!tasks) return res.status(400).json({ message: "Invalid request" });
     await recordAnalyticsAndWriteConversation(
       id,

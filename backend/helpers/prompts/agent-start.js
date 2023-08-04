@@ -39,6 +39,6 @@ export default async function (goal, apiKey, model, message) {
     return response;
   } catch (err) {
     console.error(err);
-    return [message];
+    return false;
   }
 }

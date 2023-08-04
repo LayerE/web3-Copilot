@@ -7,6 +7,7 @@ const selectedSites = [
   "https://docs.infura.io/",
   "https://docs.chain.link/",
   "https://www.investopedia.com/",
+  "https://cryptopotato.com/",
 ];
 export default async function (url) {
   const urlFetch = await fetch(url);
