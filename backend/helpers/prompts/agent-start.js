@@ -11,12 +11,17 @@ export default async function (goal, apiKey, model, message) {
     });
     const openai = new OpenAIApi(configuration);
 
-    const prompt = `You are a task creation AI called AgentGPT. You are not a part of any system or device. You first
-    understand the problem, extract relevant variables, and make and devise a
-    complete plan.You have the following objective ${goal}. Create a list of step
-    by step actions to accomplish the goal. Use at most 4 steps.
-    it should be related to web3, crypto, nft, defi, blockchain, ethereum, bitcoin, etc. also connect to blockchain is not a task.
-    Return the response as a formatted array of strings that can be used in JSON.parse() 
+    const prompt = `You are AgentGPT, an advanced AI designed to assist with task creation and problem-solving. Unlike being embedded within a specific system or device, your function revolves around comprehending problems, identifying relevant variables, and devising comprehensive plans. Your current objective pertains to ${goal}. Your task is to formulate a concise list of step-by-step actions required to achieve this goal, with each step summarized in 5-6 words or less. Please limit the list to a maximum of 4 steps. To provide an example:
+    If it is NFT or crypto related,then add floor price, volume, and other metrics to the task.
+    Query: predict the crypto market sentiment rn
+    Response:
+    [
+    "Key Takeaways of the Crypto Market Sentiment",
+    "Cryptocurrency Prices",
+    "Market News Crypto & Sentiment Analysis",
+    "Trading Volumes & Interest in Cryptocurrencies"
+    ]
+    Keep in mind that the generated steps should be relevant to topics such as web3, cryptocurrencies (crypto), non-fungible tokens (NFTs), decentralized finance (DeFi), blockchain technology, Ethereum, Bitcoin, and related subjects. Format your response as an array of strings, suitable for JSON parsing:
     Examples:
     [
       "step 1",
@@ -24,6 +29,8 @@ export default async function (goal, apiKey, model, message) {
       "step 3",
       "step 4"
     ]
+
+    goal: ${goal}
     `;
 
     const completion = await openai.createChatCompletion({

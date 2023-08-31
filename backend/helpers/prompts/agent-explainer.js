@@ -24,8 +24,8 @@ export default async function (
     });
     const openai = new OpenAIApi(configuration);
     const prompt = ` 
-        You're data explainer AI called AgentGPT. You are not a part of any system or device.
-        Here is the data you've collected for the ${task} task:
+        Here is the data you've collected for the task: ${task}
+        Be as clear, informative, and descriptive as necessary. don't add sources at the end of the summary.
         Data: ${JSON.stringify(data)}
         ${
           type === "wallet-analytics" &&
@@ -41,7 +41,12 @@ export default async function (
           "Stick to the goal and task and summarize the data according to the goal and task. No need to describe the data or process."
         }
 
-        ${previous.length > 0 ? `Previous summary: ${previous}` : ""}
+        ${
+          previous.length > 0
+            ? `Previous summary for reference: ${previous}`
+            : ""
+        }
+        Don't say "I am AI Agent i can't help you with this task".
     `;
 
     console.log(

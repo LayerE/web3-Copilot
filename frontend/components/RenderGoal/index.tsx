@@ -47,6 +47,18 @@ const GoalPage: FC<{
     const allTaskContent = goal.tasks.map((task) => task.content);
     generateGoalSummary(goal, allTaskContent, currentSession().id);
   };
+  useEffect(() => {
+    const lastTask = goal.tasks[goal.tasks.length - 1];
+
+    if (
+      lastTask?.taskFullyLoaded &&
+      lastTask?.id === goal.tasks[goal.tasks.length - 1]?.id &&
+      !goal?.summary
+    ) {
+      summarizeTask();
+    }
+  }, []);
+
   return (
     <GoalWrapper>
       <GoalTitle>

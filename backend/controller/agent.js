@@ -16,6 +16,7 @@ import {
   agentCode,
   getDefiSwap,
   getToken,
+  createQuery,
 } from "../helpers/index.js";
 import { sendData } from "../utils/index.js";
 
@@ -65,13 +66,16 @@ const AgentAnalyze = async (req, res) => {
       return res.status(400).json({ message: "Invalid request" });
     model = model && model.model_id === 2 ? "gpt-4" : "gpt-3.5-turbo-16k";
 
-    let tasks = await agentAnalyze(
-      goal,
-      apiKey ?? false,
-      "gpt-3.5-turbo",
-      task,
-      tools?.length > 0 ? tools : false
-    );
+    let tasks = {
+      /*
+       tool: args?.name,
+      args: JSON.parse(args?.arguments),
+      */
+      tool: "Search",
+      args: {
+        arg: task,
+      },
+    };
 
     let maxRetries = 10;
     while (!tasks && maxRetries > 0) {
@@ -96,7 +100,14 @@ const AgentAnalyze = async (req, res) => {
           let q = tasks?.args?.arg;
           if (q) {
             console.log("Search query:", q);
-            q = q.replace(/"/g, "") || tasks?.args?.arg;
+            q = await createQuery(
+              goal,
+              apiKey ?? false,
+              "gpt-4",
+              task?.args?.arg
+            );
+            q = q.replace(/"/g, "");
+
             const searchResults = await getSearchResults(q);
             let searchData = validateSearchResults(
               searchResults,

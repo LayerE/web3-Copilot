@@ -122,9 +122,9 @@ app.post("/api-key/check", async (req, res) => {
   }
 });
 // agents
-app.post("/agent/task", isAuth, AgentTasks);
-app.post("/agent/analyze", isAuth, AgentAnalyze);
-app.post("/agent/summarize", isAuth, AgentSummarizer);
+app.post("/agent/task", validateToken, AgentTasks);
+app.post("/agent/analyze", validateToken, AgentAnalyze);
+app.post("/agent/summarize", validateToken, AgentSummarizer);
 app.get("/agent/tools", AgentTools);
 
 app.post("/compile", async (req, res) => {

@@ -8,10 +8,10 @@ export default function (results, persona, ans, model) {
       (persona === "validator"
         ? model === "gpt-4"
           ? 3500
-          : 3000
+          : 8000
         : model === "gpt-4"
         ? 3500
-        : 3000) - ansToken;
+        : 8000) - ansToken;
     console.log("model", model);
     console.log(
       `Token used by previous answer:${ansToken}. New token limit: ${limit}`
